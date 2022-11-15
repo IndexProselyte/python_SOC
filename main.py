@@ -136,5 +136,6 @@ class App(customtkinter.CTk):
         
     
 
+# Run dze up
 app = App()
 app.mainloop()
