@@ -120,7 +120,7 @@ class App(customtkinter.CTk):
         # create tkinter window
         def create_geoTopLevel():
             root_tk = customtkinter.CTkToplevel(self)
-            root_tk.geometry("{800}x{600}")
+            root_tk.geometry("800x600")
             root_tk.title("Location mapping.")
 
             # create map widget
