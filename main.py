@@ -71,6 +71,7 @@ class App(customtkinter.CTk):
         #? Socket Functions
         def startSocket():
             t2 = threading.Thread(target=createKeylogSocket)
+            t2.daemon = True
             t2.start()
 
         def createKeylogSocket():
@@ -114,6 +115,7 @@ class App(customtkinter.CTk):
 
     def startScan(self):
         portThread = threading.Thread(target=self.openScanner)
+        portThread.daemon = True
         portThread.start()
     
     def openMapLevel(self):
@@ -132,6 +134,7 @@ class App(customtkinter.CTk):
                 map_widget.set_address("colosseo, rome, italy")
 
         geoThread = threading.Thread(target=create_geoTopLevel)
+        geoThread.daemon = True
         geoThread.start()
         
     
