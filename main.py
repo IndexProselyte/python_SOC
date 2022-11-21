@@ -144,7 +144,7 @@ class App(customtkinter.CTk):
             print("FILE_TRANSFER: Server started.")
 
         def create_file_transfer_socket():
-            HOST = "126.0.0.2"
+            HOST = "127.0.0.4"
             PORT = 65434
             FILENAME = ""
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -157,7 +157,7 @@ class App(customtkinter.CTk):
                     print(f"FILE_TRANSFER: {addr} connected.")
                     data = conn.recv(1024)
                     if not FILENAME: FILENAME = data.decode("utf-8"); data=""
-                    if data.decode('utf-8') == "Finished Sending DATA!": FILENAME = ""; data = ""
+                    if data == b"Finished Sending DATA!": FILENAME = ""; data = ""
                     new_file = (FILENAME, "w")
                     if data:
                         new_file.write(data)
@@ -174,7 +174,7 @@ class App(customtkinter.CTk):
 
         def create_CLI_socket():
             global cli
-            HOST = "192.168.0.103"  # Standard loopback interface address (localhost)
+            HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
             PORT = 12345  # Port to listen on (non-privileged ports are > 1023)
 
             #? This makes sure that we dont loose connection for too long
