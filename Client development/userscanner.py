@@ -1,4 +1,4 @@
-from os import path
+from os import path, listdir
 from glob import glob
 import socket
 from pickle import dumps
@@ -45,19 +45,23 @@ def sendFolderData(fol: str):
     suck.close()
     print("Closed File Transfer socket.")
 
-def sendFiles(filedir: str, filename: str):
-    if filename not in filedir:
-        return None
-    print("Working")
-    file = open(filename, 'rb')
-    line = file.read(1024)
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        while (line):
-            s.send(line)
-            line = file.read(1024)
-    file.close()
-    s.close()
-
-
-
+def sendFiles(filedir: str):
+    folder = filedir.split('-')[2]
+    print("Got filedir name")
+    with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as suck:
+        suck.connect((CONN_HOST, CONN_PORT))
+        print("Connected socket")
+        for filename in listdir(filedir): # Get each file in folder
+            suck.send(filename.encode("utf-8")) # Send file name and type
+            print("Got filename: ", filename)
+            dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + folder + "\\" + filename, "rb")
+            print("Got file dir: ", dict_files)
+            file_line = dict_files.read(1024)
+            while(file_line):
+                suck.send(line)
+                line = dict_files.read(1024)
+            suck.send(b"Finished Sending DATA!")
+            dict_files.close()
+            print("Data sent")
+    print("Transfer Finished")
+    suck.close()
