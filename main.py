@@ -116,7 +116,7 @@ class App(customtkinter.CTk):
             t4 = threading.Thread(target=create_file_name_socket)
             t4.daemon = True
             t4.start()
-            print("FILE_TRANSFER: Server started.")
+            print("DICT_TRANSFER: Server started.")
 
         def create_file_name_socket():
             HOST = "127.0.0.2"  # Standard loopback interface address (localhost)
@@ -126,19 +126,45 @@ class App(customtkinter.CTk):
                 self.SERVER_SOCKETS.append(s)
                 # Continue
                 s.bind((HOST, PORT))
-                print("FILE_TRANSFER: Listening for clients.")
+                print("DICT_TRANSFER: Listening for clients.")
                 s.listen()
                 conn, addr = s.accept()
                 
                 # Accept the pickle list and print it
                 with conn:
-                    print(f"FILE_TRANSFER: Connected by {addr}")
+                    print(f"DICT_TRANSFER: Connected by {addr}")
                     data = conn.recv(1024)
                     data = pickle.loads(data)
                     print(data)
 
-                  
+        def start_file_transfer_socket():
+            t5 = threading.Thread(target=create_file_transfer_socket)
+            t5.daemon = True
+            t5.start()
+            print("FILE_TRANSFER: Server started.")
+
+        def create_file_transfer_socket():
+            HOST = "126.0.0.2"
+            PORT = 65434
+            FILENAME = ""
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                self.SERVER_SOCKETS.append(s)
+                s.bind((HOST, PORT))
+                print("FILE_TRANSFER: Listening for clients.")
+                s.listen()
+                conn, addr = s.accept()
+                with conn:
+                    print(f"FILE_TRANSFER: {addr} connected.")
+                    data = conn.recv(1024)
+                    if not FILENAME: FILENAME = data.decode("utf-8"); data=""
+                    if data.decode('utf-8') == "Finished Sending DATA!": FILENAME = ""; data = ""
+                    new_file = (FILENAME, "w")
+                    if data:
+                        new_file.write(data)
+
+            
         start_file_name_socket()
+        start_file_transfer_socket()
 
         #! CLI SOCKET SEGMENT
         def start_CLI_socket():
