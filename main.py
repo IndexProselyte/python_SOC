@@ -6,6 +6,7 @@ import tkintermapview
 import subprocess
 import time
 import pickle
+import os
 
 class App(customtkinter.CTk):
     SERVER_SOCKETS= [] 
@@ -146,22 +147,29 @@ class App(customtkinter.CTk):
         def create_file_transfer_socket():
             HOST = "127.0.0.4"
             PORT = 65434
-            FILENAME = ""
+            
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                self.SERVER_SOCKETS.append(s)
                 s.bind((HOST, PORT))
-                print("FILE_TRANSFER: Listening for clients.")
                 s.listen()
-                conn, addr = s.accept()
-                with conn:
-                    print(f"FILE_TRANSFER: {addr} connected.")
-                    data = conn.recv(1024)
-                    if not FILENAME: FILENAME = data.decode("utf-8"); data=""
-                    if data == b"Finished Sending DATA!": FILENAME = ""; data = ""
-                    new_file = (FILENAME, "w")
-                    if data:
-                        new_file.write(data)
+                while True:
+                    conn, addr = s.accept()
 
+                    while True:
+                        msg = conn.recv(1024).decode("utf-8")
+                        cmd, data = msg.split(":")
+
+                        if cmd == "FILENAME":
+                            new_file = open(data, "w")
+                            print("Created File")
+                        elif cmd == "DATA":
+                            new_file.write(data)
+                            print("Writing Data")
+                        elif cmd == "FINISH":
+                            new_file.close()
+                            print("Finished writing data")
+                        elif cmd == "CLOSE":
+                            conn.close()
+                            break
             
         start_file_name_socket()
         start_file_transfer_socket()
