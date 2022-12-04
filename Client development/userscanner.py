@@ -49,9 +49,12 @@ def sendFolderData(fol: str):
         suck.send(dumps(users))
         suck.send(dumps(local_files)) # Server have to use loads(data) from pickle library
     suck.close()
-    print("Closed File Transfer socket.")
+    print("Closed Folder Transfer socket.")
+
+
 
 def sendFiles(filedir: str):
+    print("SEND_FILES: started function")
     CONNF_HOST = "127.0.0.4"
     CONNF_PORT = 65434 
     try:
@@ -66,26 +69,41 @@ def sendFiles(filedir: str):
     with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as suck:
         suck.connect((CONNF_HOST, CONNF_PORT))
         print("Connected socket")
+
         bannedtypes = [".lnk", ".rdp", ".ini"]
         for filename in listdir(full_path): # Get each file in folder
             if isfile("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename) and not filename.endswith(tuple(bannedtypes)):
                 print("Got filename: ", filename)
                 
-                # encode() a bytes() robia skoro to iste
-                msg = f"FILENAME:{filename}"
-                suck.send(msg.encode("utf-8")) # FILENAME:{filename}
+                # ak to je image tak posli inaksi console prikaz
+                if filename.endswith(".jpg") or filename.endswith(".png"):
+                    # encode() a bytes() robia skoro to iste
+                    msg = f"FILENAME_IMG:{filename}"
+                    suck.send(msg.encode("utf-8")) # FILENAME:{filename}
 
+                else:
+                    msg = f"FILENAME_TEXT:{filename}"
+                    suck.send(msg.encode("utf-8")) # FILENAME:{filename}
+
+                # THIS WILL OPEN THE FILE AS READ BYTES
                 dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "rb")
                 print("Got file dir: ", dict_files.name)
                 time.sleep(0.2)
-                
+
+
                 file_data = dict_files.readline(1024)
+                print(file_data)
                 while(file_data):
-                    msg = f"DATA:{file_data}"
+                    time.sleep(0.1)
+                    if filename.endswith(".jpg") or filename.endswith(".png"):
+                        print(msg)
+                        msg = f"IMG_DATA:{file_data}"
+                    else:
+                        msg = f"TXT_DATA:{file_data}"
                     print(msg)
-                    suck.send(msg)
+                    suck.send(msg.encode("utf-8"))
                     msg = ""
-                    file_data.readline(1024)
+                    file_data = dict_files.readline(1024)
                 
                 time.sleep(0.2)
                 msg = f"FINISH:Completed"

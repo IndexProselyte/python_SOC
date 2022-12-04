@@ -34,7 +34,7 @@ def scan_ports(ip: str, threads: int):
     print("PORTSCANNER: Finished scanning.")
     print(f"PORTSCANNER: Ports {OPEN_PORTS} are open.")
 
-scan_ports("127.0.0.1", 89)
+
     
 
 

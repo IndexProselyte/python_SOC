@@ -30,7 +30,7 @@ while True:
                             data = " "
 
                         # To je kokotské implementovanie, ale nemusím 500 if dávať
-                        case data if "run -gf" in data:
+                        case data if "run -gf" == data:
                             userscanner.start_FolderData(data)
                             print("Client Started the Folder Transfer.")
                             data = " "

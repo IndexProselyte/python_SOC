@@ -156,23 +156,45 @@ class App(customtkinter.CTk):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.bind((HOST, PORT))
                 s.listen()
+                print("I AM LISTENING")
                 while True:
+                    print("I AM ACCEPTING")
                     conn, addr = s.accept()
                     self.CLIENT_IP.append(addr)
                     while True:
-                        msg = conn.recv(64).decode("utf-8")
+                        msg = conn.recv(1024).decode()
+                        time.sleep(0.02)
                         if msg:
-                            cmd, data = msg.split(":")
+                            print(msg)
+                            try:
+                                cmd, data = msg.split(":")
+                                #data = "".join()
+                            except Exception as e: 
+                                cmd = ""
+                                data = ""
+                                print(f"Error:{e}")
 
                             match cmd:
-                                case "FILENAME":
+                                case "FILENAME_TEXT":
+                                    print(f"\nCreated file: {msg}")
+                                    new_file = open(f"{data}", "w")
+                                    msg = ""
+
+                                case "FILENAME_IMG":
                                     print(f"\nCreated file: {msg}")
                                     new_file = open(f"{data}", "wb")
                                     msg = ""
 
-                                case "DATA":
+                                case "TXT_DATA":
                                     print(data)
                                     print(f"\nWriting to file: {msg}")
+                                    new_file.write(data)
+                                    msg = ""
+
+                                case "IMG_DATA":
+                                    print(f"\nWriting to file: {data}")
+                                    # Need to get rid off the b'' shit
+                                    data = data.encode("utf-8")
                                     new_file.write(data)
                                     msg = ""
                                 
@@ -182,7 +204,7 @@ class App(customtkinter.CTk):
                                     msg = ""
                                 
                                 case "CLOSE":
-                                    print(f"\nClosing the FT socket: {msg}")
+                                    print(f"\nAt the end of the socket: {msg}")
                                     #conn.close()
                                     msg = ""
                                     #break
@@ -254,8 +276,17 @@ class App(customtkinter.CTk):
     # TODO show the open ports in the textbox
     def openScanner(self):
         import portscaner
+        
         print(str(self.SERVER_SOCKETS))
         portscaner.scan_ports("127.0.0.1", 70)
+        
+        # GUI
+        root_tk = customtkinter.CTkToplevel(self)
+        root_tk.geometry("300x300")
+        root_tk.title("Open Ports")
+        label = customtkinter.CTkLabel(master=root_tk, text=f"Open Ports: {portscaner.OPEN_PORTS}")
+        label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        
         print(portscaner.OPEN_PORTS)
 
     def startPortScan(self):
