@@ -8,6 +8,7 @@ import time
 CONN_HOST = "127.0.0.2"
 CONN_PORT = 65433 
 folder = ""
+sep = ":***:"
 
 def getuser(): # Get all users from C:\Users\
     return [path.basename(x) for x in glob('C:\\Users\\*') if x not in ['C:\\Users\\Public', 'C:\\Users\\All Users', 'C:\\Users\\Default', 'C:\\Users\\Default User', 'C:\\Users\\desktop.ini']]
@@ -56,7 +57,7 @@ def sendFolderData(fol: str):
 def sendFiles(filedir: str):
     print("SEND_FILES: started function")
     CONNF_HOST = "127.0.0.4"
-    CONNF_PORT = 65434 
+    CONNF_PORT = 1930
     try:
         filedir = filedir.split('-')[2]
         print(f"Got {filedir}")
@@ -78,41 +79,40 @@ def sendFiles(filedir: str):
                 # ak to je image tak posli inaksi console prikaz
                 if filename.endswith(".jpg") or filename.endswith(".png"):
                     # encode() a bytes() robia skoro to iste
-                    msg = f"FILENAME_IMG:{filename}"
+                    msg = f"FILENAME_IMG{sep}{filename}"
                     suck.send(msg.encode("utf-8")) # FILENAME:{filename}
 
                 else:
-                    msg = f"FILENAME_TEXT:{filename}"
+                    msg = f"FILENAME_TEXT{sep}{filename}"
                     suck.send(msg.encode("utf-8")) # FILENAME:{filename}
 
                 # THIS WILL OPEN THE FILE AS READ BYTES
                 dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "rb")
                 print("Got file dir: ", dict_files.name)
-                time.sleep(0.2)
 
 
                 file_data = dict_files.readline(1024)
                 print(file_data)
                 while(file_data):
-                    time.sleep(0.1)
+                    time.sleep(0.02)
                     if filename.endswith(".jpg") or filename.endswith(".png"):
                         print(msg)
-                        msg = f"IMG_DATA:{file_data}"
+                        msg = f"IMG_DATA{sep}{file_data}"
                     else:
-                        msg = f"TXT_DATA:{file_data}"
+                        msg = f"TXT_DATA{sep}{file_data}"
                     print(msg)
                     suck.send(msg.encode("utf-8"))
                     msg = ""
                     file_data = dict_files.readline(1024)
                 
-                time.sleep(0.2)
-                msg = f"FINISH:Completed"
+                time.sleep(0.02)
+                msg = f"FINISH{sep}Completed"
                 suck.send(msg.encode("utf-8"))
                 print("Transfer completed")
                 msg = ""
 
-        time.sleep(0.2)         
-        suck.send("CLOSE:Closing down".encode("utf-8"))
+        time.sleep(0.02)         
+        suck.send(f"CLOSE{sep}Closing down".encode("utf-8"))
         msg = ""
         suck.close()
 

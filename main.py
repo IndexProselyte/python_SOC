@@ -12,6 +12,7 @@ class App(customtkinter.CTk):
     SERVER_SOCKETS= []
     CLIENT_IP= []
     USER_GEOLOCATIONS= []
+    sep = ":***:"
 
     def __init__(self):
         super().__init__()
@@ -151,7 +152,7 @@ class App(customtkinter.CTk):
 
         def create_file_transfer_socket():
             HOST = "127.0.0.4"
-            PORT = 65434
+            PORT = 1930
             
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.bind((HOST, PORT))
@@ -163,11 +164,10 @@ class App(customtkinter.CTk):
                     self.CLIENT_IP.append(addr)
                     while True:
                         msg = conn.recv(1024).decode()
-                        time.sleep(0.02)
                         if msg:
                             print(msg)
                             try:
-                                cmd, data = msg.split(":")
+                                cmd, data = msg.split(f"{self.sep}")
                                 #data = "".join()
                             except Exception as e: 
                                 cmd = ""
@@ -176,26 +176,27 @@ class App(customtkinter.CTk):
 
                             match cmd:
                                 case "FILENAME_TEXT":
-                                    print(f"\nCreated file: {msg}")
-                                    new_file = open(f"{data}", "w")
+                                    print(f"\nCreated TXT file: {msg}")
+                                    new_file = open(f"Files/{data}", "w")
                                     msg = ""
 
                                 case "FILENAME_IMG":
-                                    print(f"\nCreated file: {msg}")
-                                    new_file = open(f"{data}", "wb")
+                                    print(f"\nCreated IMG file: {msg}")
+                                    new_file = open(f"Files/{data}", "wb")
                                     msg = ""
 
                                 case "TXT_DATA":
                                     print(data)
-                                    print(f"\nWriting to file: {msg}")
+                                    print(f"\nWriting to TXT file: {msg}")
                                     new_file.write(data)
                                     msg = ""
 
                                 case "IMG_DATA":
-                                    print(f"\nWriting to file: {data}")
+                                    print(f"\nWriting to IMG file: {data}")
                                     # Need to get rid off the b'' shit
                                     data = data.encode("utf-8")
-                                    new_file.write(data)
+                                    if data.isspace() == False:
+                                        new_file.write(data)
                                     msg = ""
                                 
                                 case "FINISH":
@@ -205,7 +206,7 @@ class App(customtkinter.CTk):
                                 
                                 case "CLOSE":
                                     print(f"\nAt the end of the socket: {msg}")
-                                    #conn.close()
+                                    conn.close()
                                     msg = ""
                                     #break
          
@@ -223,7 +224,7 @@ class App(customtkinter.CTk):
             HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
             PORT = 12345  # Port to listen on (non-privileged ports are > 1023)
 
-                        #? This makes sure that we dont loose connection for too long
+            #? This makes sure that we dont loose connection for too long
             def wake_up():
                 wake_tries = 0
                 time.sleep(10)
@@ -252,6 +253,7 @@ class App(customtkinter.CTk):
                 #wake_up()
 
         start_CLI_socket()    
+    
     ############################################################################################
     #                                        Functions                                         #
     ############################################################################################
@@ -272,20 +274,22 @@ class App(customtkinter.CTk):
             print("KILLSWITCH: Succsesfully shutdown all connections.")
         except:
             print("KILLSWITCH_Error: Socket shutdown. Prob no sockets to close.")
-    
-    # TODO show the open ports in the textbox
+
+
     def openScanner(self):
         import portscaner
-        
+        root_tk = customtkinter.CTkToplevel(self)
+        root_tk.geometry("300x200")
+        root_tk.title("Open Ports")    
+        label = customtkinter.CTkLabel(master=root_tk, text=f"Loading Data.")
+        label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
         print(str(self.SERVER_SOCKETS))
         portscaner.scan_ports("127.0.0.1", 70)
         
         # GUI
-        root_tk = customtkinter.CTkToplevel(self)
-        root_tk.geometry("300x300")
-        root_tk.title("Open Ports")
-        label = customtkinter.CTkLabel(master=root_tk, text=f"Open Ports: {portscaner.OPEN_PORTS}")
-        label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        label1 = customtkinter.CTkLabel(master=root_tk, text=f"Open Ports: {portscaner.OPEN_PORTS}")
+        label1.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         
         print(portscaner.OPEN_PORTS)
 
@@ -298,7 +302,7 @@ class App(customtkinter.CTk):
         # create tkinter window
         def create_geoTopLevel():
             root_tk = customtkinter.CTkToplevel(self)
-            root_tk.geometry("800x600")
+            root_tk.geometry("600x450")
             root_tk.title("Location mapping.")
 
             # create map widget
