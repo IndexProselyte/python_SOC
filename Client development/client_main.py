@@ -15,9 +15,11 @@ class App(customtkinter.CTk):
         ### Text ###
         self.frametextInfo = customtkinter.CTkLabel(self.frame1, text="Click Interval", text_font="Bold 12")
         self.frametextInfo.pack(side=customtkinter.TOP, pady=10)
+        self.button = customtkinter.CTkButton(app, text="Open Dialog", command=changeInterval)
+        self.button.place(relx=0.5, rely=0.5, anchor=.CENTER)
 
         ### Speed Frame
-        self.frame_frame1 = customtkinter.CTkFrame(self.frame1, width=565, height=80)
+        self.frame_frame1 = customtkinter.CTkFrame(self.frame1, width=565, height=80)k
         self.frame_frame1.pack(side=customtkinter.TOP)
 
         self.frame2 = customtkinter.CTkFrame(self, width=260, height=100)
@@ -53,7 +55,15 @@ class App(customtkinter.CTk):
 
         self.frame_frame4 = customtkinter.CTkFrame(self.frame4, width=565, height=80)
         self.frame_frame4.pack(side=customtkinter.TOP)
+        
+        def changeInterval():
+            dialog = customtkinter.CTkInputDialog(text="Type in a number:", title="Test")
+            print("Number:", dialog.get_input())
+        
+        def repeatClicking():
+            pass
 
-
+        def openOptions():
+            pass
 #th1 = threading.Thread(target=, daemon=True).start()
 app = App().mainloop()

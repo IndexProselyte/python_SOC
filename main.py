@@ -53,7 +53,7 @@ class App(customtkinter.CTk):
         self.frame1.grid(row=0, column=0, sticky="w", padx=10)
         
         # Buttons
-        self.button = customtkinter.CTkButton(master=self.frame1, text="Killswitch", command=lambda: self.killswitch(self.SERVER_SOCKETS[0]))
+        self.button = customtkinter.CTkButton(master=self.frame1, text="Killswitch", command=self.killswitch)
         self.button.grid(row=0, column=0, pady =10,sticky="n", padx=10)
       
         self.button = customtkinter.CTkButton(master=self.frame1, command=self.startPortScan, text="Port Scan")
@@ -153,10 +153,10 @@ class App(customtkinter.CTk):
         def create_file_transfer_socket():
             HOST = "127.0.0.4"
             PORT = 1930
-            
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.bind((HOST, PORT))
                 s.listen()
+                self.SERVER_SOCKETS.append(s)
                 print("I AM LISTENING")
                 while True:
                     print("I AM ACCEPTING")
@@ -239,15 +239,21 @@ class App(customtkinter.CTk):
                 if wake_tries >= 60:
                     print("CLI_Error: Chosen client is offline, terminating socket.")
                     cli.close() 
+                    self.SERVER_SOCKETS.remove(cli)
                 wake_up()
 
             # Start  CLI socket
+            added = False
             while True:
                 time.sleep(3)
                 try:    
                     cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     cli.connect((HOST,PORT))
                     print("CLI_Success: Connected to CLI client.")
+                    # Add the cli socket only once to the list
+                    if added == False:
+                        self.SERVER_SOCKETS.append(cli) 
+                        added = True
                     break
                 except Exception as e: print(f"Thrown Exception CLI: {e}")
                 #wake_up()
@@ -264,13 +270,15 @@ class App(customtkinter.CTk):
         print(f"Sent: {data}, to Client")
             
     def showFiles(self):
-        subprocess.Popen('explorer "Data"')         
+        subprocess.Popen('explorer "Files"')         
     
-    def killswitch(self):
+    def killswitch(self): # Shuts down all active sockets and removes them from the list
+        print(self.SERVER_SOCKETS)
         try:
             for socket in self.SERVER_SOCKETS:
                 socket.shutdown(socket.SHUT_RDWR)
                 socket.close()
+                self.SERVER_SOCKETS.remove(socket)
             print("KILLSWITCH: Succsesfully shutdown all connections.")
         except:
             print("KILLSWITCH_Error: Socket shutdown. Prob no sockets to close.")
