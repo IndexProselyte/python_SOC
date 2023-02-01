@@ -6,6 +6,7 @@ import tkintermapview
 import subprocess
 import time
 import pickle
+import os
 
 
 class App(customtkinter.CTk):
@@ -73,6 +74,8 @@ class App(customtkinter.CTk):
                                width=600,
                                height=500)
         self.frame2.grid(row=0, column=2, sticky="s")
+
+
 
         self.entry = customtkinter.CTkEntry(master=self.frame2,
                                placeholder_text="CTkEntry",
@@ -159,7 +162,7 @@ class App(customtkinter.CTk):
                 # Make a top Level progress bar  
                 textbox = customtkinter.CTkTextbox(self, width=550, height=330)
                 textbox.grid(row=0, column=2)
-                textbox.insert("0.0", "FILE TRANSFER BYTE INFO")
+                #textbox.insert("0.0", "FILE TRANSFER BYTE INFO")
 
                 # Create the Socket
                 s.bind((HOST, PORT))
@@ -170,47 +173,53 @@ class App(customtkinter.CTk):
                     print("I AM ACCEPTING")
                     conn, addr = s.accept()
                     self.CLIENT_IP.append(addr)
+                    # Variables for the message while loop
+                    msg_size = 77
+                    msg = b''
                     while True:
-                        msg = conn.recv(1024).decode()
+                        # TODO Make the recv wait untill all 77 bytes are recieved                
+                        while len(msg) < msg_size:
+                            msg = conn.recv(77).decode("utf-8") # ! 64b(File bytes) + 13b(HEADER) 
+                            print(f"{len(msg)}, {msg}\n")
+
+                        msg = msg.replace(" ","")
                         if msg:
-                            print(msg)
+                            #print(msg)
                             try:
-                                cmd, data = msg.split(f"{self.sep}")
+                                cmd = msg.split(f"{self.sep}")[0]
+                                data = msg.split(f"{self.sep}")[1]
                                 #data = "".join()
                             except Exception as e: 
-                                cmd = ""
-                                data = ""
-                                print(f"Error:{e}")
+                                print(f"\nCMD:{cmd}")
+                                print(f"DATA:{data}") 
+                                print(f"Error:{e}\n")
 
                             match cmd:
                                 case "FILENAME_TEXT":
                                     print(f"\nCreated TXT file: {msg}")
                                     new_file = open(f"Files/{data}", "w")
-                                    textbox.insert("0.0", f"{msg}")
-                                    msg = ""
-
-                                case "FILENAME_IMG":
-                                    print(f"\nCreated IMG file: {msg}")
-                                    new_file = open(f"Files/{data}", "wb")
-                                    textbox.insert("0.0", f"{msg}")
+                                    textbox.insert("0.0", f"{msg}\n")
                                     msg = ""
 
                                 case "TXT_DATA":
-                                    print(data)
-                                    print(f"\nWriting to TXT file: {msg}")
-                                    new_file.write(data)
-                                    textbox.insert("0.0", f"{data}")
-                                    msg = ""
-
-                                case "IMG_DATA":
-                                    print(f"\nWriting to IMG file: {data}")
-                                    # Need to get rid off the b'' shit
-                                    data = data.encode("utf-8")
-                                    if data.isspace() == False:
+                                    #print(f"\nWriting to TXT file: {data}")
+                                    filesize = int(data)
+                                    while True:
+                                        msg = conn.recv(64)
+                                        if filesize < 0:
+                                            print("Broken the loop")
+                                            time.sleep(5)
+                                            break
+                                        if not msg: break 
                                         new_file.write(data)
-                                        textbox.insert("0.0", f"{data}")
+                                        filesize = filesize-64
+                                        print("---------------------")
+                                        print(filesize)
+                                        print(msg)
+                                        print("---------------------")
+                                        time.sleep(1)
                                     msg = ""
-                                
+                               
                                 case "FINISH":
                                     print(f"\nClosing the file: {msg}")
                                     new_file.close()
