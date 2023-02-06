@@ -90,7 +90,7 @@ class App(customtkinter.CTk):
                                             text="Files")
         self.button.grid(row=3, column=0, pady =10, sticky="n", padx=10)
 
-        self.button = customtkinter.CTkButton(master=self.frame1, command=lambda: self.showClientList(self.CLIENT_IP), text="Show Clients")
+        self.button = customtkinter.CTkButton(master=self.frame1, command=self.startGathering, text="Show Clients")
         self.button.grid(row=4,column=0,pady=10,sticky="n", padx=10)
         
         #! Center Frame: Main content/command line
