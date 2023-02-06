@@ -360,19 +360,31 @@ class App(customtkinter.CTk):
         geoThread.daemon = True
         geoThread.start()
 
-    def showClientList(self, client_list: list):
-        window = customtkinter.CTkToplevel(self)
-        window.geometry("600x400")
-        window.title("Client List")
+    def startGathering(self):
+        th = threading.Thread(target=self.Gathering)
+        th.daemon=True
+        th.start()
 
-        ctext_box = tkinter.Listbox(window, width=65, height=25, background='#2A2E2E',
-                                    borderwidth=0,highlightthickness=0, foreground='#FFFFFF', selectbackground='#696969',
-                                     font=("Trajan Pro", "14"))
-        ctext_box.pack(side=tkinter.LEFT, padx=10, pady=10)
-
-        for client in client_list:
-            ctext_box.insert(0, f"{client[0]}:{client[1]}")
-            ctext_box.selec
+    def Gathering(self):
+        print("Starting1")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind((self.gather_SOIP, self.gather_SOPORT))
+            window = customtkinter.CTkToplevel(self)
+            window.geometry("600x400")
+            our_box = customtkinter.CTkTextbox(self, 200, 200, bg_color='red')
+            window.title("Client List")
+            cli.send('run -gatherData'.encode("utf-8"))
+            sock.listen()
+            conn, _ = sock.accept()
+            print("Accepted")
+            infos = []
+            while True:
+                data = conn.recv(1024)
+                infos.append(data.decode('utf-8'))
+                if len(infos) > 3:
+                    break
+            for info in infos:
+                our_box.insert(customtkinter.END, info)
     
 # Run dze up
 app = App()
