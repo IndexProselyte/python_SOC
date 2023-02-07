@@ -65,5 +65,9 @@ class App(customtkinter.CTk):
 
         def openOptions():
             pass
-#th1 = threading.Thread(target=, daemon=True).start()
+
+        
+th1 = threading.Thread(target=client.start_client)
+th1.daemon = False
+th1.start()
 app = App().mainloop()
