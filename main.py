@@ -381,7 +381,8 @@ class App(customtkinter.CTk):
             sock.bind((self.gather_SOIP, self.gather_SOPORT))
             window = customtkinter.CTkToplevel(self)
             window.geometry("600x400")
-            our_box = customtkinter.CTkTextbox(self, 200, 200, bg_color='red')
+            our_box = customtkinter.CTkTextbox(window, 200, 200, bg_color='red')
+            our_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
             window.title("Client List")
             cli.send('run -gatherData'.encode("utf-8"))
             sock.listen()
@@ -394,7 +395,7 @@ class App(customtkinter.CTk):
                 if len(infos) > 3:
                     break
             for info in infos:
-                our_box.insert(customtkinter.END, info)
+                our_box.insert(customtkinter.END, f"{info}\n")
     
 # Run dze up
 app = App()
