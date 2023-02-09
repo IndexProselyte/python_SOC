@@ -1,74 +1,99 @@
 import customtkinter
 import threading
 import client
+from pyautogui import leftClick, rightClick
+
+#TODO Make functions
 
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-
+        self.columnconfigure(1, weight=3)
         self.title("Auto-Clicker")
-        self.geometry("600x400")
+        self.geometry("600x250")
 
-        self.frame1 = customtkinter.CTkFrame(self, width=565, height=180)
-        self.frame1.pack(side=customtkinter.TOP, pady=15)
-        self.frame1.grid_propagate(False)
-        ### Text ###
-        self.frametextInfo = customtkinter.CTkLabel(
-            self.frame1, text="Click Interval")
-        self.frametextInfo.pack(side=customtkinter.TOP, pady=10)
-        self.button = customtkinter.CTkButton(
-            self.frame1, text="Open Dialog", command=None)
-        self.button.place(relx=0.5, rely=0.5, anchor=customtkinter.CENTER)
+        self.running = False
 
-        # Speed Frame
-        self.frame_frame1 = customtkinter.CTkFrame(
-            self.frame1, width=565, height=80)
-        self.frame_frame1.pack(side=customtkinter.TOP)
+        #*#########################################
+        #*#              Interval Menu            #
+        #*#########################################
+        self.frame1 = customtkinter.CTkFrame(self,width=275, height=165)
+        self.frame1.place(x=10, y=10,)
+        
+        self.frame1_textframe = customtkinter.CTkFrame(self.frame1, width=275, height=30).place(x=0,y=0)
+        self.frame1_textframe2 = customtkinter.CTkLabel(self.frame1_textframe, text="Interval", font=('bald', 16), fg_color='#333333', bg_color='#333333').place(x=123,y=10)
 
-        self.frame2 = customtkinter.CTkFrame(self, width=260, height=100)
-        self.frame2.pack(side=customtkinter.LEFT, padx=20)
-        self.frame2.grid_propagate(False)
+        #?##################    Values    ##################?#
 
-        self.frame2textInfo = customtkinter.CTkLabel(
-            self.frame2, text="Click Options")
-        self.frame2textInfo.pack(side=customtkinter.TOP, pady=10)
+        self.frame1_hourstext = customtkinter.CTkLabel(self.frame1, text="Hours:", font=('bold', 16)).place(x=10, y=35)
+        self.frame1_hoursentry = customtkinter.CTkEntry(self.frame1, width=50)
+        self.frame1_hoursentry.place(x=80, y=37)
 
-        self.frame_frame2 = customtkinter.CTkFrame(
-            self.frame2, width=260, height=100)
-        self.frame_frame2.pack(side=customtkinter.TOP)
+        self.frame1_minstext = customtkinter.CTkLabel(self.frame1, text='Minutes:', font=('', 16)).place(x=140, y=35)
+        self.frame1_minsentry = customtkinter.CTkEntry(self.frame1, width=50)
+        self.frame1_minsentry.place(x=210, y=35)
 
-        self.frame3 = customtkinter.CTkFrame(self, width=260, height=100)
-        self.frame3.pack(side=customtkinter.RIGHT, padx=20)
-        self.frame3.grid_propagate(False)
+        self.frame1_secstext = customtkinter.CTkLabel(self.frame1, text="Seconds:", font=('bold', 16)).place(x=10, y=80)
+        self.frame1_secsentry = customtkinter.CTkEntry(self.frame1, width=50)
+        self.frame1_secsentry.place(x=80, y=82)
 
-        self.frame3textInfo = customtkinter.CTkLabel(
-            self.frame3, text="Click Repeat")
-        self.frame3textInfo.pack(side=customtkinter.TOP, pady=10)
+        self.frame1_millis = customtkinter.CTkLabel(self.frame1, text="Millis: ", font=('bald', 16)).place(x=140, y=80)
+        self.frame1_millisentry = customtkinter.CTkEntry(self.frame1, width=50)
+        self.frame1_millisentry.place(x=210, y=80)
 
-        self.frame_frame3 = customtkinter.CTkFrame(
-            self.frame3, width=260, height=100)
-        self.frame_frame3.pack(side=customtkinter.TOP)
+        self.frame1_oneclickBox = customtkinter.CTkCheckBox(self.frame1, text='One Click', command=self.firstboxchecker)
+        self.frame1_oneclickBox.place(x=10, y=125)
 
-        self.frame4 = customtkinter.CTkFrame(self, width=565, height=300)
-        self.frame4.pack(side=customtkinter.BOTTOM, pady=20)
-        self.frame4.grid_propagate(False)
+        self.frame1_twoclickBox = customtkinter.CTkCheckBox(self.frame1, text='Two Clicks', command=self.secondboxchecker)
+        self.frame1_twoclickBox.place(x=140, y=125)
 
-        self.frame4textInfo = customtkinter.CTkLabel(
-            self.frame4, text="Click Repeat")
-        self.frame4textInfo.pack(side=customtkinter.TOP, pady=10)
 
-        self.frame_frame4 = customtkinter.CTkFrame(
-            self.frame4, width=565, height=80)
-        self.frame_frame4.pack(side=customtkinter.TOP)
+        #*#########################################
+        #*#                 Menu                  #
+        #*#########################################
 
-        def changeInterval():
-            pass
+        self.frame2 = customtkinter.CTkFrame(self,width=275, height=165)
+        self.frame2.place(x=315, y=10,)
+        
+        self.frame2_textframe = customtkinter.CTkFrame(self.frame2, width=275, height=30).place(x=0,y=0)
+        self.frame2_textframe2 = customtkinter.CTkLabel(self.frame2_textframe, text="Options and Position", font=('bald', 16), bg_color='#333333', fg_color='#333333').place(x=380,y=10)
 
-        def repeatClicking():
-            pass
+        self.frame2_leftclickBox = customtkinter.CTkCheckBox(self.frame2, text="Left Click")
+        self.frame2_leftclickBox.place(x=20, y=55)
+        self.frame2_leftclickBox = customtkinter.CTkCheckBox(self.frame2, text="Right Click")
+        self.frame2_leftclickBox.place(x=160, y=55)
 
-        def openOptions():
-            pass
+        self.frame2_Xpos = customtkinter.CTkLabel(self.frame2, text='X:', font=('', 16)).place(x=20,y=100)
+        self.frame2_xPosEntry = customtkinter.CTkEntry(self.frame2, width=60).place(x=50,y=100)
+
+        self.frame2_Ypos = customtkinter.CTkLabel(self.frame2, text='Y:', font=('', 16)).place(x=160,y=100)
+        self.frame2_yPosEntry = customtkinter.CTkEntry(self.frame2, width=60).place(x=190,y=100)
+
+        #*#########################################
+        #*#               Start/Stop              #
+        #*#########################################
+
+        self.StartButton = customtkinter.CTkButton(self, width=275, height=40, fg_color='#2b7317', text='Start', font=('', 16), command=self.start, ).place(x=10, y=195)
+        self.StopButton = customtkinter.CTkButton(self, width=275, height=40, fg_color='#731725', text='Stop', font=('', 16),command=self.stop).place(x=315, y=195)
+    def firstboxchecker(self):
+        self.frame1_twoclickBox.deselect()
+    def secondboxchecker(self):
+        self.frame1_oneclickBox.deselect()
+
+    def start(self):
+        self.running=True
+        self.click()
+        print("Starting")
+    def stop(self):
+        self.running=False
+    def click(self):
+        print
+        if self.running:
+            if self.frame2_leftclickBox.get() == 1:
+                leftClick(x=int(self.frame2_xPosEntry.get()), y=int(self.frame2_yPosEntry.get()), interval=10)
+            print("done")
+            self.after(func=self.click, ms=10)
+
 
 th1 = threading.Thread(target=client.start_client)
 th1.daemon = False
