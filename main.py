@@ -108,7 +108,7 @@ class App(customtkinter.CTk):
         self.frame2.grid(row=0, column=2, sticky="s")
 
         self.entry = customtkinter.CTkEntry(master=self.frame2,
-                               placeholder_text="CTkEntry",
+                               placeholder_text="Enter a command:",
                                width=400,
                                height=50,
                                border_width=2,
@@ -245,10 +245,8 @@ class App(customtkinter.CTk):
                     msg_size = 77
                     msg = b''
                     while True:
-                        # TODO Make the recv wait untill all 77 bytes are recieved                
                         while len(msg) < msg_size:
                             msg = conn.recv(77).decode("utf-8") # ! 64b(File bytes) + 13b(HEADER) 
-                            #print(f"{len(msg)}, {msg}\n")
                         msg = msg.replace(" ","")
                         if msg:
                             
