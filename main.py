@@ -380,9 +380,9 @@ class App(customtkinter.CTk):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((self.gather_SOIP, self.gather_SOPORT))
             window = customtkinter.CTkToplevel(self)
-            window.geometry("600x400")
-            our_box = customtkinter.CTkTextbox(window, 200, 200, bg_color='red')
-            our_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+            window.geometry("500x300")
+            our_box = customtkinter.CTkTextbox(window, 480, 280, text_color='red')
+            our_box.place(x=10, y=10)
             window.title("Client List")
             cli.send('run -gatherData'.encode("utf-8"))
             sock.listen()
@@ -391,9 +391,10 @@ class App(customtkinter.CTk):
             infos = []
             while True:
                 data = conn.recv(1024)
-                infos.append(data.decode('utf-8'))
-                if len(infos) > 3:
+                if "END_SENDING" in data.decode("utf-8"):
                     break
+                infos.append(data.decode('utf-8'))
+                print(infos)
             for info in infos:
                 our_box.insert(customtkinter.END, f"{info}\n")
     

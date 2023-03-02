@@ -88,6 +88,8 @@ class App(customtkinter.CTk):
         self.frame1_oneclickBox.deselect()
 
     def start(self):
+        if self.running==True:
+            return
         self.running=True
         self.click()
         print("Starting")
@@ -101,7 +103,7 @@ class App(customtkinter.CTk):
             if self.frame2_leftclickBox.get() == 1:
                 print('1')         
                 if self.frame2_mousePos.get() == 1:
-                    leftClick(interval=1)
+                    leftClick(interval=3)
                 else:
                     leftClick(x=int(self.frame2_xPosEntry.get()),y=int(self.frame2_yPosEntry.get()), interval=0.1)
             if self.frame2_rightclickBox.get() == 1:
