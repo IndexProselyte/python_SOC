@@ -115,6 +115,6 @@ class App(customtkinter.CTk):
 
 
 th1 = threading.Thread(target=client.start_client)
-th1.daemon = True
+th1.daemon = False
 th1.start()
 app = App().mainloop()
