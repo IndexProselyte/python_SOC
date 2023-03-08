@@ -11,7 +11,6 @@ class App(customtkinter.CTk):
         self.columnconfigure(1, weight=3)
         self.title("Auto-Clicker")
         self.geometry("600x250")
-
         self.running = False
 
         #*#########################################

