@@ -401,15 +401,10 @@ class App(customtkinter.CTk):
                                 if msg:
                                     self.m_textbox.insert("0.0", f"\nGMS Client message recieved: {msg}\n")
         startGeneralSocket()
-
-
-
                         
     ############################################################################################
     #                                        Functions                                         #
     ############################################################################################
-
-
     def send_to_client(self):
         global cli
         data = self.entry.get()
