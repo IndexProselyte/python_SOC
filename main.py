@@ -10,6 +10,7 @@ import pickle
 import os
 from datetime import datetime
 from tkinter import messagebox
+import playsound
 
 
 class App(customtkinter.CTk):
@@ -32,8 +33,11 @@ class App(customtkinter.CTk):
     genSoc_SOIP = "127.0.0.1"
     genSoc_SOPORT = 46969
 
-    # Important Strings
+    # Important Variables
     sep = ":***:"
+    stop_music = False
+
+
     def __init__(self):
         super().__init__()
                
@@ -163,6 +167,19 @@ class App(customtkinter.CTk):
         ###########################################################################################
         #                                        System                                           #
         ###########################################################################################
+        def play_backround_sound():
+            global mus_t
+            def play():
+                playsound.playsound("Data/playlist for silly goofsters.mp3", False)
+                print("aqdad")
+
+            mus_t = threading.Thread(target=play)
+            mus_t.daemon = True
+            mus_t.start()
+        
+            
+        play_backround_sound()    
+        
         #! CLI SOCKET SEGMENT
         def start_CLI_socket():
             t3 = threading.Thread(target=create_CLI_socket)
