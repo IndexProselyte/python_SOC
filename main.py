@@ -338,14 +338,15 @@ class App(customtkinter.CTk):
                             try:
                                 data = conn.recv(1024).decode("utf-8")
                                 FILENAME = data
-                                self.m_textbox.insert("0.0", f"\nFile {FILENAME} is being recieved.\n") 
+                                self.m_textbox.insert("0.0", f"File {FILENAME} is being recieved.\n") 
                                 conn.send("Filename and filesize received".encode("utf-8"))
-                            
-                                file = open(f"recv_{FILENAME}", "w")
+                                print(FILENAME)
+                                file = open(f"recv_{FILENAME}", "wb")
                                 while True:
-                                    data = conn.recv(1024).decode("utf-8")
+                                    data = conn.recv(1024)
                             
-                                    if data == "END":
+                                    if b"**?END?**" in data: # ??????
+                                        print("bend in data")
                                         file.close()
                                         break
                             
@@ -354,7 +355,7 @@ class App(customtkinter.CTk):
                             except:
                                 file.close()
                                 print("endeed")
-                                self.m_textbox.insert("0.0", f"\nAll files have been transfered.\n") 
+                                self.m_textbox.insert("0.0", f"All files have been transfered.\n") 
                                 break
                         break
 

