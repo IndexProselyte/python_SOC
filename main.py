@@ -268,6 +268,7 @@ class App(customtkinter.CTk):
                             self.textbox.insert("0.0", f"{self.USER_GEOLOCATIONS}\n")
                             while True:
                                 try: 
+                                    # TODO: make a system that shortens the output when the backspace key is pressed
                                     data = conn.recv(1024).decode("utf-8") 
                                     self.textbox.insert("0.0", f"{data}\n")
                                     k_file.write(f"{data}\n")
