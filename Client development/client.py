@@ -60,7 +60,6 @@ def start_client():
                                     userscanner.start_FolderData(data)
     
                                 case data if "run -gfc" in data:
-                                    data = ""
                                     print("Command: ", {data})
                                     userscanner.start_sendFiles(data)
                                     data = ""

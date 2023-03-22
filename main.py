@@ -325,68 +325,40 @@ class App(customtkinter.CTk):
                 self.SERVER_SOCKETS.append(s)
                 self.m_textbox.insert("0.0", f"\nFile Transfer online.\n")  
                 while True:
-                    print("I AM ACCEPTING")
                     conn, addr = s.accept()
-                    self.CLIENT_IP.append(addr)
-                    # Variables for the message while loop
-                    msg_size = 77
-                    msg = b''
-                    while True:          
-                        while len(msg) < msg_size:
-                            msg = conn.recv(77).decode("utf-8") # ! 64b(File bytes) + 13b(HEADER) 
-                            #print(f"{len(msg)}, {msg}\n")
-                        msg = msg.replace(" ","")
-                        if msg:
-                            
+                    while True:
+                        try:
+                            # Filesize is useless in this configuration the guy only used it for the graph
+                            data = conn.recv(1024).decode("utf-8")
+                            FILES = int(data)
+                            conn.send("FILE_count_recv".encode("utf-8"))
+                        except:
+                            pass
+                        for i in range(FILES):
                             try:
-                                cmd = msg.split(f"{self.sep}")[0]
-                                data = msg.split(f"{self.sep}")[1]
-                                if msg ==  "FINISH:***:Completed": 
-                                    print(msg)
-                                    print(cmd)
-                                    print(data)
-                                
-                                #data = "".join()
-                            except Exception as e: 
-                                print(f"\nCMD:{cmd}")
-                                print(f"DATA:{data}") 
-                                print(f"Error:{e}\n")
+                                data = conn.recv(1024).decode("utf-8")
+                                FILENAME = data
+                                self.m_textbox.insert("0.0", f"\nFile {FILENAME} is being recieved.\n") 
+                                conn.send("Filename and filesize received".encode("utf-8"))
+                            
+                                file = open(f"recv_{FILENAME}", "w")
+                                while True:
+                                    data = conn.recv(1024).decode("utf-8")
+                            
+                                    if data == "END":
+                                        file.close()
+                                        break
+                            
+                                    file.write(data)
+                                    conn.send("Data received.".encode("utf-8"))
+                            except:
+                                file.close()
+                                print("endeed")
+                                self.m_textbox.insert("0.0", f"\nAll files have been transfered.\n") 
+                                break
+                        break
 
-                            match cmd:
-                                case "FILENAME_TEXT":
-                                    print(f"\nCreated TXT file: {msg}")
-                                    new_file = open(f"Files/{data}", "w")
-                                    self.m_textbox.insert("0.0", f"{msg}\n")
-                                    cmd = ""
-
-                                case "TXT_DATA":
-                                    #print(f"\nWriting to TXT file: {data}")
-                                    filesize = int(data)
-                                    while True:
-                                        if filesize < -3000: break
-                                        try: msg = conn.recv(64).decode("utf-8")
-                                        except Exception as e: print(str(e))
-                                        if filesize < 0 and "::END_OF_THE_SOCKET::" in msg: 
-                                            cmd = ""
-                                            msg = ""
-                                            print("Recieved the Trailer.")
-                                            new_file.close()     
-                                            self.m_textbox.insert("0.0", f"\nFile transfered!\n")   
-                                            break
-                                        new_file.write(msg)
-                                        filesize = filesize-64
-                                        #new_file.write("NIGGA")
-                                        print("---------------------")
-                                        print("FILESIZE", filesize)
-                                        print("MSG", msg)
-                                        print("---------------------")
-       
-                                case "FINISH":
-                                    print("\n")
-                                    print(f"\nClosing the file: {msg}")
-                                    #textbox.insert("0.0", f"\nAll files transfered!\n")
-                                    #new_file.close()
-                                    cmd = ""
+                      
          
         start_file_name_socket()
         start_file_transfer_socket()
