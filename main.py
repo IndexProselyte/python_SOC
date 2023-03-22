@@ -341,15 +341,13 @@ class App(customtkinter.CTk):
                                 self.m_textbox.insert("0.0", f"File {FILENAME} is being recieved.\n") 
                                 conn.send("Filename and filesize received".encode("utf-8"))
                                 print(FILENAME)
-                                file = open(f"recv_{FILENAME}", "wb")
+                                file = open(f"Files/recv_{FILENAME}", "wb")
                                 while True:
                                     data = conn.recv(1024)
-                            
                                     if b"**?END?**" in data: # ??????
                                         print("bend in data")
                                         file.close()
                                         break
-                            
                                     file.write(data)
                                     conn.send("Data received.".encode("utf-8"))
                             except:
