@@ -35,5 +35,6 @@ def run_cmd_code(cmd_data: str):
         cmd_data = cmd_data.split('-cmd')[1]
         print(f"Executing command: {cmd_data}")
         system(cmd_data)
+
     except Exception as s:
         print("Oh no error: {}".format(s))

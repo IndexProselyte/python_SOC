@@ -85,6 +85,7 @@ def startGmsSocket():
 
 def createGmsSocket():
     # TODO: Expand on the GMS system
+    global gms_s
     gms_s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     gms_s.connect(("127.0.0.1",46969))
     gms_s.send(bytes("GMS system has been established.", "utf-8"))
