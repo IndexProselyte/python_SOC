@@ -42,7 +42,7 @@ class App(customtkinter.CTk):
         super().__init__()
                
         self.title("Red Forest")
-        self.geometry("1050x500")
+        self.geometry("1000x490")
 
         # create 2x2 grid system
         self.grid_rowconfigure((0, 3), weight=1)
