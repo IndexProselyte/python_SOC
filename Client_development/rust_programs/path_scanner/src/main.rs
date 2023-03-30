@@ -1,6 +1,8 @@
 use std::fs;
 use std::io;
 use std::path::Path;
+use std::fs::File;
+use std::io::prelude::*;
 
 fn get_all_paths(root_dir: &Path) -> io::Result<Vec<String>> {
     let mut paths = Vec::new();
@@ -12,7 +14,7 @@ fn get_all_paths(root_dir: &Path) -> io::Result<Vec<String>> {
                 Ok(child_paths) => paths.extend(child_paths),
                 Err(e) if e.kind() == io::ErrorKind::PermissionDenied => {
                     // Handle the permission denied error here
-                    eprintln!("Permission denied for directory: {}", path.display());
+                    eprintln!("Permission denied for directory: {}, {}", path.display(), &e);
                 },
                 Err(e) => return Err(e),
             }
@@ -27,8 +29,9 @@ fn get_all_paths(root_dir: &Path) -> io::Result<Vec<String>> {
 fn main() -> io::Result<()> {
     let root_dir = "C:/";
     let paths = get_all_paths(Path::new(root_dir))?;
+    let mut file = File::create("paths.txt")?;
     for path in paths {
-        println!("{}", path);
+        let message = writeln!(file, "{}", path).expect("Failed to write");
     }
     Ok(())
 }

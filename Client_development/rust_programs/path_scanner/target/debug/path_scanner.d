@@ -1,1 +1,1 @@
-C:\Users\lenovo\Desktop\Folders\Main\ Repo\python_SOC\Client\ development\rust_programs\path_scanner\target\debug\path_scanner.exe: C:\Users\lenovo\Desktop\Folders\Main\ Repo\python_SOC\Client\ development\rust_programs\path_scanner\src\main.rs
+C:\Users\lenovo\Desktop\Folders\Main\ Repo\python_SOC\Client_development\rust_programs\path_scanner\target\debug\path_scanner.exe: C:\Users\lenovo\Desktop\Folders\Main\ Repo\python_SOC\Client_development\rust_programs\path_scanner\src\main.rs
