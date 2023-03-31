@@ -57,7 +57,7 @@ def start_client():
                                 case data if "run -gf" == data:
                                     data = ""
                                     print("Command: ", {data})
-                                    userscanner.start_FolderData(data)
+                                    userscanner.start_FolderData()
     
                                 case data if "run -gfc" in data:
                                     print("Command: ", {data})

