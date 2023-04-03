@@ -42,7 +42,7 @@ fn main() -> io::Result<()> {
     let paths = get_all_paths(Path::new(root_dir))?;
     let mut file = File::create("paths.txt")?;
     for path in paths {
-        let message = writeln!(file, "{}", path).expect("Failed to write");
+        writeln!(file, "{}", path).expect("Failed to write");
     }
     Ok(())
 }

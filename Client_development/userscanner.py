@@ -19,8 +19,8 @@ def getfiles(scan_user: str, dict_files: str):
 
 
 # Created threads for each function cuz CLI wouldnt work without it
-def start_FolderData(fol: str):
-        FolderThread = threading.Thread(target=lambda: sendFolderData(fol))
+def start_FolderData():
+        FolderThread = threading.Thread(target=lambda: sendFolderData())
         FolderThread.daemon = True
         FolderThread.start()
         FolderThread.join()
