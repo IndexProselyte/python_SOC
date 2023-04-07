@@ -90,9 +90,5 @@ def createGmsSocket():
     gms_s.connect(("127.0.0.1",46969))
     gms_s.send(bytes("GMS system has been established.", "utf-8"))
 
-
-
-                                    
-
 if __name__ == "__main__":
     send_Ip_Port()
