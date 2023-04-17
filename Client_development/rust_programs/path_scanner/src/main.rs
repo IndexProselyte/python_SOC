@@ -22,15 +22,17 @@ fn get_all_paths(root_dir: &Path) -> io::Result<Vec<String>> {
         let str_path = path.clone().into_os_string().into_string().unwrap();
         let is_ok = safe_check(&str_path);
         if is_ok == true{
-            if path.is_dir() {  
+            if path.is_dir() {   
+                    paths.push(path.to_string_lossy().to_string());
+                    // Use a match statement to see if there are more files inside the direcotry
                     match get_all_paths(&path) {
-                        Ok(child_paths) => paths.extend(child_paths), // push directory paths 
+                        Ok(child_paths) => {paths.extend(child_paths);}, // push directory paths 
                         Err(e) if e.kind() == io::ErrorKind::PermissionDenied => {
                             eprintln!("");
                         },
                         Err(e) => return Err(e),
                     }
-                } else {paths.push(path.to_string_lossy().to_string());} // push filepaths
+                } else {paths.push(path.to_string_lossy().to_string());} // This pushes files
         } 
     }
     Ok(paths)
