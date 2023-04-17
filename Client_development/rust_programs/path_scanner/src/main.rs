@@ -30,8 +30,8 @@ fn get_all_paths(root_dir: &Path) -> io::Result<Vec<String>> {
                         },
                         Err(e) => return Err(e),
                     }
-                }
-        } else {paths.push(path.to_string_lossy().to_string());} // push filepaths
+                } else {paths.push(path.to_string_lossy().to_string());} // push filepaths
+        } 
     }
     Ok(paths)
 }
