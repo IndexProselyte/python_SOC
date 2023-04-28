@@ -110,13 +110,6 @@ class App(customtkinter.CTk):
                                             hover_color="red",
                                             command=self.killswitch)
         self.button.grid(row=1, column=0, pady =10,sticky="n", padx=10)
-      
-        self.button = customtkinter.CTkButton(master=self.frame1, 
-                                            command=self.startPortScan,
-                                            fg_color="#a10505", 
-                                            hover_color="black", 
-                                            text="Port Scan")
-        self.button.grid(row=2, column=0, pady =10,sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             command=self.openMapLevel,
@@ -166,19 +159,7 @@ class App(customtkinter.CTk):
                 
         ###########################################################################################
         #                                        System                                           #
-        ###########################################################################################
-        def play_backround_sound():
-            global mus_t
-            def play():
-                playsound.playsound("Data/playlist for silly goofsters.mp3", False)
-                print("aqdad")
-
-            mus_t = threading.Thread(target=play)
-            mus_t.daemon = True
-            mus_t.start()
-        
-            
-        #play_backround_sound()    
+        ###########################################################################################  
         
         #! CLI SOCKET SEGMENT
         def start_CLI_socket():
@@ -416,31 +397,6 @@ class App(customtkinter.CTk):
                 print(f"Error closing socket: {soc}")
         self.SERVER_SOCKETS.clear() # Remove all sockets from the list
         print("\n!!! KILLSWITCH: Successfully shutdown all connections. !!!\n")
-
-
-    def openScanner(self):
-        import portscaner
-        root_tk = customtkinter.CTkToplevel(self)
-        root_tk.geometry("300x200")
-        root_tk.title("Open Ports")    
-        label = customtkinter.CTkLabel(master=root_tk, text=f"Loading Data.")
-        label.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-
-        self.m_textbox.insert("0.0", "\nPort scanner active!\n")  
-        print(str(self.SERVER_SOCKETS))
-        portscaner.scan_ports("127.0.0.1", 70)
-        
-        # GUI
-        label1 = customtkinter.CTkLabel(master=root_tk, text=f"Open Ports: {portscaner.OPEN_PORTS}")
-        label1.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
-        
-        print(portscaner.OPEN_PORTS)
-        self.m_textbox.insert("0.0", "\nPort scanner deactivated.\n")  
-
-    def startPortScan(self):
-        portThread = threading.Thread(target=self.openScanner)
-        portThread.daemon = True
-        portThread.start()
     
     def openMapLevel(self):
         # create tkinter window
