@@ -19,17 +19,19 @@ def send_Ip_Port():
             msg = f"{HOST_IP};{HOST_PORT}"
             cli_ip.send(bytes(msg, "utf-8"))
             break
-        except:
-            print("Server offline.")
+        except Exception as e :
+            print("Server offline.", e)
     while True:
         msg = cli_ip.recv(128).decode("utf-8")
         if msg == "continue": 
-            startGmsSocket()
-            start_client()
+            print("Server started.")
+            break
+
 
 def start_client():
     while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as main_s:
+                send_Ip_Port()
                 print("0: client.py started")
                 main_s.bind(("127.0.0.1", 12345))
                 print("1: bound the ip and port")
@@ -78,17 +80,5 @@ def start_client():
                                     github_inject.run_cmd_code(data)
                                     data= ""
 
-def startGmsSocket():
-    gms_t = threading.Thread(target=createGmsSocket)
-    gms_t.daemon = True
-    gms_t.start()
-
-def createGmsSocket():
-    # TODO: Expand on the GMS system
-    global gms_s
-    gms_s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    gms_s.connect(("127.0.0.1",46969))
-    gms_s.send(bytes("GMS system has been established.", "utf-8"))
-
 if __name__ == "__main__":
-    send_Ip_Port()
+    start_client()

