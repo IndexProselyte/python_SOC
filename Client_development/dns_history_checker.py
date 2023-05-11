@@ -1,0 +1,1 @@
+# Periodically check the browsing history and dns requests, if you detect an anomaly send it to the server

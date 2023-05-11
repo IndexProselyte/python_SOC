@@ -41,7 +41,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
                
-        self.title("Red Forest")
+        self.title("Anjel strazny")
         self.geometry("1000x490")
 
         # create 2x2 grid system
@@ -52,8 +52,8 @@ class App(customtkinter.CTk):
         ############################################################################################
         
         #! Backround image (red_forest)
-        self.bg_image = customtkinter.CTkImage(light_image=Image.open("Data//red_forest.png"),
-                                  dark_image=Image.open("Data//red_forest.png"),
+        self.bg_image = customtkinter.CTkImage(light_image=Image.open("Data//mount.jpg"),
+                                  dark_image=Image.open("Data//mount.jpg"),
                                   size=(300, 500))
 
         self.button = customtkinter.CTkButton(self, image=self.bg_image,
@@ -105,30 +105,31 @@ class App(customtkinter.CTk):
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             text="PLACEHOLDER",
-                                            bg_color="red", 
-                                            fg_color="black",
-                                            hover_color="red",
+                                            bg_color="dark blue", 
+                                            fg_color="dark blue", 
+                                            hover_color="white",
+                                            text_color="black",
                                             )
         self.button.grid(row=1, column=0, pady =10,sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             command=self.openMapLevel,
-                                            fg_color="#a10505", 
-                                            hover_color="black", 
+                                            fg_color="dark blue", 
+                                            hover_color="white", text_color="black",
                                             text="Geolocation")
         self.button.grid(row=3, column=0, pady =10,sticky="n", padx=10)     
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                             command=self.showFiles,
-                                            fg_color="#a10505",
-                                            hover_color="black",  
+                                            fg_color="dark blue",
+                                            hover_color="white", text_color="black",  
                                             text="Files")
         self.button.grid(row=4, column=0, pady =10, sticky="n", padx=10)
 
         self.button = customtkinter.CTkButton(master=self.frame1, 
                                              command=self.startGathering, 
-                                             fg_color="#a10505",
-                                             hover_color="black",  
+                                             fg_color="dark blue",
+                                             hover_color="white", text_color="black", 
                                              text="Show Client Info")
         self.button.grid(row=5,column=0,pady=10,sticky="n", padx=10)
         
@@ -152,7 +153,7 @@ class App(customtkinter.CTk):
         self.entry.grid(row=2, column=1, sticky="w", pady = 25, padx = 5)
 
         self.button = customtkinter.CTkButton(master=self.frame2,height=25,
-                                              fg_color="#620606",
+                                              fg_color="dark blue",
                                               hover_color="black",  
                                               command=self.send_to_client,text="Submit")
         self.button.grid(row=2, column=1, padx = 10, pady = 10, sticky = "e")

