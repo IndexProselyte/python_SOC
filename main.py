@@ -10,7 +10,7 @@ import pickle
 import os
 from datetime import datetime
 from tkinter import messagebox
-import playsound
+
 
 
 class App(customtkinter.CTk):
